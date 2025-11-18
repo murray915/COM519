@@ -18,9 +18,6 @@ class User:
         self.access_code = access_code
         self.account_cre_date = account_cre_date
 
-    def login_check():
-        pass
-
 
 class Customer(User):
     """ 
@@ -34,9 +31,6 @@ class Customer(User):
         super().__init__(account_cre_date, name, address, post_code, email, phone_no, user_name, password, access_code)
         self.customer_id = customer_id
         self.membership_id = membership_id
-
-    def update_account_details():
-        pass
 
 
 class Staff(User):
@@ -54,9 +48,3 @@ class Staff(User):
         self.staff_type = staff_type
         self.mechanic_id = mechanic_id
         self.primary_garage = primary_garage
-
-    def update_account_details():
-        pass
-
-    def update_customer_account_details():
-        pass
