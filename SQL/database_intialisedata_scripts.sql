@@ -31,7 +31,7 @@ VALUES
     ('PST-016','BS8 3JD'),
     ('PST-017','BN2 1RD'),
     ('PST-018','M19 1AQ'),
-    ('PST-019','MK9 1BB'),
+    ('PST-019','MK9 1BB'),(
     ('PST-020','LS11 5TP'),
     ('PST-021','CF10 5AE')
 ;
@@ -46,22 +46,22 @@ VALUES
 	
 INSERT INTO stock (part_id, name, description, common_repair_group)
 VALUES 
-    ('ITM-001','Engine Oil','Lubricates engine components','Oil change, regular servicing'),
-    ('ITM-002','Oil Filter','Filters contaminants from engine oil','Oil change'),
-    ('ITM-003','Air Filter','Filters air entering the engine','Engine tune-up, annual service'),
-    ('ITM-004','Brake Pads','Provides friction for braking','Brake repair or replacement'),
-    ('ITM-005','Brake Discs (Rotors)','Rotating surface for brake pads to clamp','Brake system overhaul'),
-    ('ITM-006','Spark Plugs','Ignites fuel-air mixture in engine cylinders','Engine misfires, tune-up'),
-    ('ITM-007','Fuel Filter','Filters impurities from fuel','Fuel system maintenance'),
-    ('ITM-008','Timing Belt/Chain','Synchronises engine timing','Engine service (at specific mileage)'),
-    ('ITM-009','Cabin Air Filter','Filters air inside the car cabin','HVAC maintenance'),
-    ('ITM-010','Wiper Blades','Clears rain from windscreen','Seasonal maintenance'),
-    ('ITM-011','Coolant/Antifreeze','Regulates engine temperature','Cooling system flush'),
-    ('ITM-012','Transmission Fluid','Lubricates and cools transmission components','Transmission service'),
-    ('ITM-013','Battery','Powers the cars electrical system','Battery replacement'),
-    ('ITM-014','Tyres','Provides traction and supports the car’s weight','Tyre replacement or rotation'),
-    ('ITM-015','Headlight Bulbs','Provides front illumination','Bulb replacement')
-    ;
+    ('ITM-001','Engine Oil','Lubricates engine components','Oil change, regular servicing',true),
+    ('ITM-002','Oil Filter','Filters contaminants from engine oil','Oil change',true),
+    ('ITM-003','Air Filter','Filters air entering the engine','Engine tune-up, annual service',true),
+    ('ITM-004','Brake Pads','Provides friction for braking','Brake repair or replacement',true),
+    ('ITM-005','Brake Discs (Rotors)','Rotating surface for brake pads to clamp','Brake system overhaul',true),
+    ('ITM-006','Spark Plugs','Ignites fuel-air mixture in engine cylinders','Engine misfires, tune-up',true),
+    ('ITM-007','Fuel Filter','Filters impurities from fuel','Fuel system maintenance',true),
+    ('ITM-008','Timing Belt/Chain','Synchronises engine timing','Engine service (at specific mileage)',true),
+    ('ITM-009','Cabin Air Filter','Filters air inside the car cabin','HVAC maintenance',true),
+    ('ITM-010','Wiper Blades','Clears rain from windscreen','Seasonal maintenance',true),
+    ('ITM-011','Coolant/Antifreeze','Regulates engine temperature','Cooling system flush',true),
+    ('ITM-012','Transmission Fluid','Lubricates and cools transmission components','Transmission service',true),
+    ('ITM-013','Battery','Powers the cars electrical system','Battery replacement',true),
+    ('ITM-014','Tyres','Provides traction and supports the car’s weight','Tyre replacement or rotation',true),
+    ('ITM-015','Headlight Bulbs','Provides front illumination','Bulb replacement',true)
+;
 
 INSERT INTO customer (customer_id, user_id)
 VALUES
@@ -79,16 +79,16 @@ VALUES
 
 INSERT INTO customer_vehicles (customer_vehicle_id, customer_id, car_reg, car_make, car_model, MOT_status)
 VALUES
-    ('CUSVEH-001','CUS-001','BK72 LXF','Volkswagen','Golf','Pass'),
-    ('CUSVEH-002','CUS-002','MV21 RYD','Volkswagen','Polo','N/A'),
-    ('CUSVEH-003','CUS-003','LD70 ZKC','Ford','Fiesta','N/A'),
-    ('CUSVEH-004','CUS-004','HY68 MJO','Nissan','Qashqai','Pass'),
-    ('CUSVEH-005','CUS-005','CN19 TXE','Ford','Fiesta','N/A'),
-    ('CUSVEH-006','CUS-006','WF73 BDU','Mercedes-Benz','C-Class','N/A'),
-    ('CUSVEH-007','CUS-007','KS22 VNM','Honda','Civic','N/A'),
-    ('CUSVEH-008','CUS-008','GX71 HLE','BMW','3 Series','Pass'),
-    ('CUSVEH-009','CUS-009','RJ69 YTB','Toyota','Corolla','N/A'),
-    ('CUSVEH-010','CUS-010','DA20 KZW','Honda','Civic','N/A')
+    ('CUSVEH-001','CUS-001','BK72 LXF','Volkswagen','Golf','Pass',true),
+    ('CUSVEH-002','CUS-002','MV21 RYD','Volkswagen','Polo','N/A',true),
+    ('CUSVEH-003','CUS-003','LD70 ZKC','Ford','Fiesta','N/A',true),
+    ('CUSVEH-004','CUS-004','HY68 MJO','Nissan','Qashqai','Pass',true),
+    ('CUSVEH-005','CUS-005','CN19 TXE','Ford','Fiesta','N/A',true),
+    ('CUSVEH-006','CUS-006','WF73 BDU','Mercedes-Benz','C-Class','N/A',true),
+    ('CUSVEH-007','CUS-007','KS22 VNM','Honda','Civic','N/A',true),
+    ('CUSVEH-008','CUS-008','GX71 HLE','BMW','3 Series','Pass',true),
+    ('CUSVEH-009','CUS-009','RJ69 YTB','Toyota','Corolla','N/A',true),
+    ('CUSVEH-010','CUS-010','DA20 KZW','Honda','Civic','N/A',true)
 ;
 
 INSERT INTO memberships (membership_id, customer_id, subscription_payment_day, payment_method, iban)
@@ -100,10 +100,10 @@ VALUES
 
 INSERT INTO packages (package_id, name, description, items_consumed)
 VALUES
-    ('PCK-001','MOT/Service','MOT and Full Service','[ITM-001,ITM-002,ITM-003]'),
-    ('PCK-002','Cooling Sys. Referb','Cooling system check and referbish','[ITM-009,ITM-010,ITM-011]'),
-    ('PCK-003','Interim Service','Interim Service','[ITM-003,ITM-006,ITM-007]'),
-    ('PCK-004','Investigation/Service','Full review of vehicle, with feedback from customer','N/A')
+    ('PCK-001','MOT/Service','MOT and Full Service','[ITM-001,ITM-002,ITM-003]',true),
+    ('PCK-002','Cooling Sys. Referb','Cooling system check and referbish','[ITM-009,ITM-010,ITM-011]',true),
+    ('PCK-003','Interim Service','Interim Service','[ITM-003,ITM-006,ITM-007]',true),
+    ('PCK-004','Investigation/Service','Full review of vehicle, with feedback from customer','N/A',true)
 ;
 
 
@@ -162,40 +162,62 @@ VALUES
     ('TACT-037','BK-010','CUSVEH-010','ITM-007','1')
 ;
 
-INSERT INTO users (  
-    user_id,
-    customer_id,
-    staff_id,	
-    name,
-    address,
-    postcode_id,
-    email,
-    phone_no,    
-    membership_id,
-    staff_type,
-    mechanic_id,
-    primary_garage,	
-    access_code,	
+INSERT INTO users(
+	user_id,
+	customer_id,
+	staff_id,	
+	name,
+	address,
+	postcode_id,
+	email,
+	phone_no,
+	membership_id,
+	staff_type,
+	mechanic_id,
+	primary_garage,	
+	access_code,
+	account_creation_date)
+VALUES
+    ('USR-001','CUS-001','N/A','Oliver Smith','12 High Street, Cambridge','PST-001','oliver.smith@email.com','07123 456789','N/A','N/A','N/A','N/A','CUS_USR','2025-09-12'),
+    ('USR-002','CUS-002','N/A','Amelia Jones','Flat 4, 22 King’s Road, London','PST-002','amelia.jones@email.com','07234 567890','1','N/A','N/A','N/A','CUS_USR_MEM','2025-10-25'),
+    ('USR-003','CUS-003','N/A','Jack Taylor','78 Church Lane, Manchester','PST-003','jack.taylor@email.com','07345 678901','N/A','N/A','N/A','N/A','CUS_USR','2025-11-15'),
+    ('USR-004','CUS-004','N/A','Olivia Brown','5 Rosewood Close, Birmingham','PST-004','olivia.brown@email.com','07456 789012','N/A','N/A','N/A','N/A','CUS_USR','2025-10-28'),
+    ('USR-005','CUS-005','N/A','Harry Wilson','14 Market Street, Leeds','PST-005','harry.wilson@email.com','07567 890123','2','N/A','N/A','N/A','CUS_USR_MEM','2025-11-13'),
+    ('USR-006','CUS-006','N/A','Isla Thompson','Apartment 3B, 10 Queen Street, Glasgow','PST-006','isla.thompson@email.com','07678 901234','N/A','N/A','N/A','N/A','CUS_USR','2025-08-29'),
+    ('USR-007','CUS-007','N/A','Charlie Johnson','56 Victoria Road, Bristol','PST-007','charlie.johnson@email.com','07789 012345','N/A','N/A','N/A','N/A','CUS_USR','2025-11-13'),
+    ('USR-008','CUS-008','N/A','Emily Walker','7 Meadow Court, Nottingham','PST-008','emily.walker@email.com','07890 123456','N/A','N/A','N/A','N/A','CUS_USR','2025-09-20'),
+    ('USR-009','CUS-009','N/A','George Evans','21 Station Road, Liverpool','PST-009','george.evans@email.com','07901 234567','N/A','N/A','N/A','N/A','CUS_USR','2025-09-21'),
+    ('USR-010','CUS-010','N/A','Ava Robinson','33 Green Lane, Sheffield','PST-010','ava.robinson@email.com','07012 345678','3','N/A','N/A','N/A','CUS_USR_MEM','2025-10-01'),
+    ('USR-011','N/A','STF-001','Simon Lee','12 Baker Street','PST-011','Simon.Lee@email.com','07911 234567','N/A','Mechanic','MEC-01','2','STF_USR','2025-09-19'),
+    ('USR-012','N/A','STF-002','Jen Keeosk','45 Oakwood Drive','PST-012','Jen.Keeosk@email.com','07941 994567','N/A','Mechanic','MEC-02','3','STF_USR','2025-11-02'),
+    ('USR-013','N/A','STF-003','Jason Anderson','88 Kingsway Road','PST-013','Jason.Anderson@email.com','07722 556688','N/A','Mechanic','MEC-03','2','STF_USR','2025-10-23'),
+    ('USR-014','N/A','STF-004','Jim Bean','3 Rose Hill Crescent','PST-014','Jim.Bean@email.com','07400 123456','N/A','Mechanic','MEC-04','4','STF_USR','2025-09-08'),
+    ('USR-015','N/A','STF-005','Katie John','101 Castle Street','PST-015','Katie.John@email.com','020 7946 0123','N/A','Mechanic','MEC-05','1','STF_USR','2025-10-27'),
+    ('USR-016','N/A','STF-006','Sue Bridges','Flat 6, 22 The Avenue','PST-016','Sue.Bridges@email.com','0121 496 0991','N/A','Front Desk','FRNT-01','1','ADMIN','2025-09-11'),
+    ('USR-017','N/A','STF-007','Alex Towns','9 Seaview Terrace','PST-017','Alex.Towns@email.com','0131 225 5630','N/A','Front Desk','FRNT-02','2','ADMIN','2025-09-20')
+;
+
+INSERT INTO login_details (  
     user_name,
     password,
-    account_creation_date)
+    user_id)
 VALUES
-    ('USR-001','CUS-001','N/A','Oliver Smith','12 High Street, Cambridge','PST-001','oliver.smith@email.com','07123 456789','N/A','N/A','N/A','N/A','CUS_USR','osmith1','62772112','2025-08-28'),
-    ('USR-002','CUS-002','N/A','Amelia Jones','Flat 4, 22 King’s Road, London','PST-002','amelia.jones@email.com','07234 567890','1','N/A','N/A','N/A','CUS_USR_MEM','ajones1','66219258','2025-08-30'),
-    ('USR-003','CUS-003','N/A','Jack Taylor','78 Church Lane, Manchester','PST-003','jack.taylor@email.com','07345 678901','N/A','N/A','N/A','N/A','CUS_USR','jtaylor1','51199489','2025-10-16'),
-    ('USR-004','CUS-004','N/A','Olivia Brown','5 Rosewood Close, Birmingham','PST-004','olivia.brown@email.com','07456 789012','N/A','N/A','N/A','N/A','CUS_USR','obrown1','53949486','2025-11-01'),
-    ('USR-005','CUS-005','N/A','Harry Wilson','14 Market Street, Leeds','PST-005','harry.wilson@email.com','07567 890123','2','N/A','N/A','N/A','CUS_USR_MEM','hwilson1','59337557','2025-09-17'),
-    ('USR-006','CUS-006','N/A','Isla Thompson','Apartment 3B, 10 Queen Street, Glasgow','PST-006','isla.thompson@email.com','07678 901234','N/A','N/A','N/A','N/A','CUS_USR','ithompson1','77460467','2025-09-03'),
-    ('USR-007','CUS-007','N/A','Charlie Johnson','56 Victoria Road, Bristol','PST-007','charlie.johnson@email.com','07789 012345','N/A','N/A','N/A','N/A','CUS_USR','cjohnson1','94616124','2025-11-08'),
-    ('USR-008','CUS-008','N/A','Emily Walker','7 Meadow Court, Nottingham','PST-008','emily.walker@email.com','07890 123456','N/A','N/A','N/A','N/A','CUS_USR','ewalker1','45341273','2025-09-18'),
-    ('USR-009','CUS-009','N/A','George Evans','21 Station Road, Liverpool','PST-009','george.evans@email.com','07901 234567','N/A','N/A','N/A','N/A','CUS_USR','gevans1','24282314','2025-09-24'),
-    ('USR-010','CUS-010','N/A','Ava Robinson','33 Green Lane, Sheffield','PST-010','ava.robinson@email.com','07012 345678','3','N/A','N/A','N/A','CUS_USR_MEM','arobinson1','62267791','2025-08-28'),
-    ('USR-011','N/A','STF-001','Simon Lee','12 Baker Street','PST-011','Simon.Lee@email.com','07911 234567','N/A','Mechanic','MEC-01','2','STF_USR','slee1','25752374','2025-09-20'),
-    ('USR-012','N/A','STF-002','Jen Keeosk','45 Oakwood Drive','PST-012','Jen.Keeosk@email.com','07941 994567','N/A','Mechanic','MEC-02','3','STF_USR','jkeeosk1','10390882','2025-10-05'),
-    ('USR-013','N/A','STF-003','Jason Anderson','88 Kingsway Road','PST-013','Jason.Anderson@email.com','07722 556688','N/A','Mechanic','MEC-03','2','STF_USR','janderson1','29053046','2025-10-17'),
-    ('USR-014','N/A','STF-004','Jim Bean','3 Rose Hill Crescent','PST-014','Jim.Bean@email.com','07400 123456','N/A','Mechanic','MEC-04','4','STF_USR','jbean1','81546103','2025-10-13'),
-    ('USR-015','N/A','STF-005','Katie John','101 Castle Street','PST-015','Katie.John@email.com','020 7946 0123','N/A','Mechanic','MEC-05','1','STF_USR','kjohn1','31218871','2025-09-13'),
-    ('USR-016','N/A','STF-006','Sue Bridges','Flat 6, 22 The Avenue','PST-016','Sue.Bridges@email.com','0121 496 0991','N/A','Front Desk','FRNT-01','1','ADMIN','sbridges1','71237171','2025-10-31'),
-    ('USR-017','N/A','STF-007','Alex Towns','9 Seaview Terrace','PST-017','Alex.Towns@email.com','0131 225 5630','N/A','Front Desk','FRNT-02','2','ADMIN','atowns1','81787119','2025-10-13')
+    ('USR-01','osmith1','62683712'),
+    ('USR-02','ajones1','62724718'),
+    ('USR-03','jtaylor1','68582101'),
+    ('USR-04','obrown1','56473833'),
+    ('USR-05','hwilson1','51541186'),
+    ('USR-06','ithompson1','75619299'),
+    ('USR-07','cjohnson1','17127492'),
+    ('USR-08','ewalker1','56375618'),
+    ('USR-09','gevans1','65262483'),
+    ('USR-10','arobinson1','35489144'),
+    ('USR-11','slee1','40998464'),
+    ('USR-12','jkeeosk1','15237089'),
+    ('USR-13','janderson1','60874572'),
+    ('USR-14','jbean1','94236619'),
+    ('USR-15','kjohn1','17607649'),
+    ('USR-16','sbridges1','95168737'),
+    ('USR-17','atowns1','54083180')
 ;
 

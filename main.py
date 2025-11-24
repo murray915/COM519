@@ -1,6 +1,6 @@
 from icecream import ic
+from main_window_class import *
 
-
-#db connection
-#login
-#menus - as objects
+if __name__ == "__main__":
+    app = Main()
+    app.mainloop()
