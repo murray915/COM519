@@ -2,19 +2,19 @@
     "main_settings": {
         "theme": "dark",
         "font_size": 12,
-        "language": "en" 
-    },   
-
+        "language": "en"
+    },
     "database_settings": {
         "database": "database.db",
-        "database_path": "./data/"
+        "database_path": "./data/",
+        "key": "b'IBlCrg4jbPD7WSy0NjFIucP2pMS-_32xBpBCDw1S3kk='"
     },
-
     "programming_settings": {
-        "icecream_enabled": true  
+        "icecream_enabled": "true"
     },
-
     "ktinker_settings": {
-        "geometry": "300x200"
+        "login_geometry": "350x125",
+        "reg_geometry": "675x520",
+        "app_geometry": "1200x600"
     }
 }

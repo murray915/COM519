@@ -1,6 +1,7 @@
 from icecream import ic
-from main_window_class import *
+from login_window import *
+from main_window import *
 
 if __name__ == "__main__":
-    app = Main()
-    app.mainloop()
+    Login_process = Login_Window()
+    result = Login_process.run()

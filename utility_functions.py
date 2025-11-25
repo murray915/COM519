@@ -2,45 +2,40 @@ from icecream import ic
 import os
 
 def get_database_connection() -> object | bool:
-    """ 
-    Return database connection from settings data
-    If settings data is invalid, return False    
     """
-
+    Return live database connection from settings data.
+    If invalid, return False.
+    """
+    import os
     import database as db
 
     try:
-        
-        # Get database settings from settings.json 
-        database_details = get_settings_data() # get settings data
-        database_settings = os.path.join(
-            database_details["database_settings"]["database_path"],
-            database_details["database_settings"]["database"]
-            )
-        
-        # Debug
-        ic(database_settings)
+        settings = get_settings_data()
 
-        # check database connections from settings
-        with db.Database(database_settings) as db:
-            database = db
-            test_sql = load_sql_file("database_connection_check.sql")
-            result = db.query(test_sql, ())
+        db_path = os.path.join(
+            settings["database_settings"]["database_path"],
+            settings["database_settings"]["database"]
+        )
 
-        # return database connection if successful
-        # else return False
+        # Create a connection (DO NOT use "with" here)
+        conn = db.Database(db_path)
+
+        # Test connection
+        test_sql = load_sql_file("database_connection_check.sql")
+        result = conn.query(test_sql, ())
+
         if result[1]:
             ic("Database connection successful")
-            return db
-        else:
-            ic("Database connection failed")
-    
-        return False
-    
-    except Exception as err: # Exception Block. Return data to user & False
-        ic(f"\n\n** Unexpected {err=}, {type(err)=} ** \n\n")  
+            return conn   # return open connection
+        
+        ic("Database connection failed")
+        conn.close()
         return False
 
+    except Exception as err:
+        ic(f"Unexpected error: {err}, type={type(err)}")
+        return False
+    
 
 def load_sql_file(filename) -> str | False: 
     """
@@ -79,15 +74,78 @@ def get_settings_data() -> dict | bool:
         # get settings file path
         filename = "settings.json"
         filename = os.path.join(os.path.dirname(__file__), "data", filename)
-        ic(filename)
+        #ic(filename)
 
         # read settings file
         # return settings data as dictionary
         with open(filename, 'r') as f:
             output = json.load(f)
-            ic(output)
+            #ic(output)
             return output
     
     except Exception as err: # Exception Block. Return data to user & False
         ic(f"\n\n** Unexpected {err=}, {type(err)=} ** \n\n")  
         return False
+    
+
+def generate_encypt_key() -> str:
+    """
+    generate encyption key
+    return key
+    """
+
+    from cryptography.fernet import Fernet
+    key = Fernet.generate_key()
+
+    return key
+
+
+def staging_update_settings_data(data: dict, keys: list, new_value, update=True) -> dict | bool:
+    """
+    update settings data from input setting path:
+    example: [["database_settings"]["database"]]
+    full call example: "uf.staging_update_settings_data(jsonfile, ["ktinker_settings", "font_size"], 20)"
+    """
+    
+    try:
+        # get json contents
+        d = data
+
+        for key in keys[:-1]:
+            d = d.setdefault(key, {})  # create nested dict if missing
+        
+        d[keys[-1]] = new_value
+        
+        if update:
+            update_setting_data(data)
+        
+        return data
+    
+    except Exception as err: # Exception Block. Return data to user & False
+        ic(f"\n\n** Unexpected {err=}, {type(err)=} ** \n\n")  
+        return False
+    
+
+def update_setting_data(data) -> bool:
+    """
+    if data != bool, update setting json file
+    return bool on completion    
+    """
+
+    import json
+
+    try:        
+        # get settings file path
+        filename = "settings.json"
+        filename = os.path.join(os.path.dirname(__file__), "data", filename)
+
+        # overwrite settings file
+        # return settings data as dictionary    
+        with open(filename, "w") as f:
+            json.dump(data, f, indent=4)
+
+        return True
+    
+    except Exception as err: # Exception Block. Return data to user & False
+        ic(f"\n\n** Unexpected {err=}, {type(err)=} ** \n\n")  
+        return False    

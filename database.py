@@ -26,7 +26,7 @@ class Database:
         self.connection.commit()
 
     def rollback(self):
-        self.connection.rollback()       
+        self.connection.rollback()
 
     def close(self, commit=True):
         if commit:
