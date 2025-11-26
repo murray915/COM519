@@ -1,7 +1,7 @@
 --check username not within login_details
 SELECT 
 
-ud.user_name
+ld.user_name
 
 FROM login_details ld
 

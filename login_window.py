@@ -96,7 +96,7 @@ class Login_Window(tk.Tk):
             # if connection, validate login
             if db:
 
-                login_query = uf.load_sql_file("logincheck.sql")
+                login_query = uf.load_sql_file("login_check.sql")
                 result = db.query(login_query, (value_username, value_password))
 
                 if result:
