@@ -20,13 +20,17 @@ class Reg_Window(tk.Toplevel):
             self.email_add = tk.StringVar()
             self.phone_no = tk.StringVar()
             self.username = tk.StringVar()
-            self.password = tk.StringVar()            
+            self.password = tk.StringVar()  
             return
                        
         if parent is None:
             parent = tk.Tk()
 
         super().__init__(parent)
+
+        #encryption
+        self.f_key = None
+        self.get_key()
 
         # window params
         self.geometry(uf.get_settings_data()["ktinker_settings"]["reg_geometry"])
@@ -134,7 +138,7 @@ class Reg_Window(tk.Toplevel):
                 )
         
 
-    def validate_user_inputs(self) -> bool:
+    def validate_user_inputs(self, create=True) -> bool:
         """
         check user information > if return True
         check username/password > if return True
@@ -143,19 +147,30 @@ class Reg_Window(tk.Toplevel):
         """
 
         # Step 1: User info
-        info_ok = self.validate_user_information_data()
+        reg_ok = self.validate_user_information_data()
 
-        if not info_ok:
+        if not reg_ok:
             return False
 
         # Step 2: Login data
-        login_ok = self.validate_user_login_data()
+        reg_ok = self.validate_user_login_data()
 
-        if not login_ok:
+        if not reg_ok:
             return False
 
+        # Step 2: Login data
+        postcode_id = self.validate_postcode()
+        
+        # final step: create user/login_details
+        result = self.register_customer(postcode_id, create)
+
+        ic(result)
+
+        if result == False:
+            return False      
+                       
         # If both valid, true
-        return True  
+        return True
 
 
     def validate_user_information_data(self) -> bool | str:
@@ -329,5 +344,107 @@ class Reg_Window(tk.Toplevel):
             return err
 
 
-    def register_customer(self):
-        pass
+    def register_customer(self, postcode_id: str, create=True) -> bool | str:
+        """
+        Data validation completed. Create user skeletal record
+        input postcode_id from function
+        input create = False if testing and creation into db not req.
+        """
+        
+        try:
+                
+                user_params = [
+                    (self.first_name.get() + " " + self.surname_name.get()),
+                    (self.add_1.get()+" "+self.add_2.get()+" "+self.add_3.get()),
+                    postcode_id,
+                    self.email_add.get(),
+                    self.phone_no.get()
+                ]
+
+                login_params = [
+                    self.username.get().strip(),
+                    self.encryption(str(self.password.get()),True)               
+                ]
+
+                ic(user_params, login_params)
+
+                # db connection & sql script get
+                conn = uf.get_database_connection()
+                sql = uf.load_sql_file("user_data_create.sql")
+                sql_statements = sql.replace("\n", "").split(";")
+
+                ic(sql_statements)
+
+                # enact sql scripts (3 total)
+                for i, sql in enumerate(sql_statements):
+
+                    # get next id
+                    if i == 0:
+                        user_id = conn.query(sql, ())
+                        user_id = user_id[1][0][0]
+
+                        # update params with id
+                        user_params.insert(0, user_id)
+                        login_params.insert(0, user_id)
+
+                    # create user record
+                    if i == 1:
+                        conn.insert(sql, user_params)
+
+                    # create login_details record
+                    if i == 2:
+                        conn.insert(sql, login_params)
+
+                    # check created records
+                    if i == 3:
+                        result = conn.query(sql, (user_id,))
+
+                # commit records (false=testing)
+                # close db connection
+                if create:
+                    conn.commit()
+
+                conn.close()
+
+                # check results if created update user
+                # close window
+                if result[1]:
+                    messagebox.showinfo("showinfo", "New Account Registered. Please login to the application")
+                    self.destroy()
+                    return True
+                
+                # Else, return err to user
+                else:
+                    messagebox.showinfo("showinfo", "Failure on Account Creation. Please refer to System Admin")
+                    return False
+                
+
+        except Exception as err:
+            ic(f"Unexpected error: {err}, type={type(err)}")
+            conn.close()
+            return err
+        
+
+    def get_key(self):
+        """ 
+        get encryption key & store within obj
+        """
+        key_str = uf.get_encrypt_key()
+
+        self.key = key_str.encode()
+        self.f_key = Fernet(self.key)
+
+
+    def encryption(self, input_data: str, encypt: bool) -> str:
+        """
+        input string to be encypted/decrypted
+        encypt = True for  encypt, False = Decrypt
+        key from store
+        """
+        if not self.f_key:
+            raise ValueError("Fernet key not initialized")
+        
+        if encypt:
+            return self.f_key.encrypt(input_data.encode()).decode()
+        else:
+            return self.f_key.decrypt(input_data.encode()).decode()

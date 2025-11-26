@@ -40,14 +40,7 @@ class Login_Window(tk.Tk):
         """ 
         get encryption key & store within obj
         """
-        key_str = uf.get_settings_data()["database_settings"]["key"]
-            
-        if key_str.startswith("b'") or key_str.startswith('b"'):
-            # Strip accidental b'...' wrapper
-            key_str = key_str[2:-1]
-
-        if len(key_str) != 44:
-            raise ValueError("Invalid Fernet key length")
+        key_str = uf.get_encrypt_key()
 
         self.key = key_str.encode()
         self.f_key = Fernet(self.key)
@@ -87,7 +80,7 @@ class Login_Window(tk.Tk):
         try:
                 
             # Login check
-            value_username = self.encryption(self.username.get(),True)
+            value_username = self.username.get().strip()
             value_password = self.encryption(str(self.password.get()),True)
 
             # get database connection
@@ -97,17 +90,24 @@ class Login_Window(tk.Tk):
             if db:
 
                 login_query = uf.load_sql_file("login_check.sql")
-                result = db.query(login_query, (value_username, value_password))
+                result = db.query(login_query, (value_username,))
 
-                if result:
-                    self.result = True
-                    messagebox.showinfo("showinfo", "correct login and password")
+                db.close() 
+
+                # if username found check pass
+                if result[1]:
+                    # if pass matches
+                    if self.encryption(result[1][0][-1],False) == str(self.password.get()):
+                        self.result = True
+                        messagebox.showinfo("showinfo", "correct login and password")
+                    else:
+                        self.result = False
+                        messagebox.showwarning("Warning", "Incorrect password")      
+                                
                 else:
                     self.result = False
-                    messagebox.showwarning("Warning", "Incorrect login or password")
-                
-                db.close()          
-            
+                    messagebox.showwarning("Warning", "Incorrect login or password")      
+                                
             # connection failed
             else:
                 ic("Database connection error")            

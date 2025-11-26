@@ -99,6 +99,25 @@ def generate_encypt_key() -> str:
 
     return key
 
+def get_encrypt_key() -> str:
+    """
+    get stored key from settings
+    
+    :return: stored key
+    :rtype: str
+    """
+
+    key_str = get_settings_data()["database_settings"]["key"]
+        
+    if key_str.startswith("b'") or key_str.startswith('b"'):
+        # Strip accidental b'...' wrapper
+        key_str = key_str[2:-1]
+
+    if len(key_str) != 44:
+        raise ValueError("Invalid Fernet key length")
+    
+    return key_str
+
 
 def staging_update_settings_data(data: dict, keys: list, new_value, update=True) -> dict | bool:
     """

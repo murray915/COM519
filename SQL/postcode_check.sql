@@ -4,4 +4,4 @@ INSERT INTO postcodes (postcode_id, postcode) VALUES (?,?);
 
 -- first script: get next postcode_id
 -- second script: check postcode input has id
--- third script: create postcode record from input
+-- third script: create postcode record from input (triggered if second = None)

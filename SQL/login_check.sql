@@ -8,6 +8,7 @@ ld.user_id
 ,ud.email
 ,ud.phone_no
 ,ud.access_code
+,ld.password
 
 FROM login_details ld
     JOIN users ud
@@ -15,6 +16,5 @@ FROM login_details ld
     JOIN postcodes pc
         ON ud.postcode_id = pc.postcode_id
 
-WHERE (ld.user_name = ?
-    AND ld.password = ?)
+WHERE ld.user_name = ?
     AND ud.active_flag = 1;

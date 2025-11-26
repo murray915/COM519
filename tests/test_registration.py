@@ -209,3 +209,29 @@ def test_postcode_validation_does_not_exist():
     result = win.validate_postcode(False)
 
     assert result == postcode_id
+
+
+def test_user_creation():
+    """
+    test user creation. 
+    No record created in DB, results confirmed via result
+    """
+        
+    win = Reg_Window.__new__(Reg_Window)
+    Reg_Window.__init__(win, parent=None)
+    
+    win.first_name.set("Test")
+    win.surname_name.set("Test")
+    win.add_1.set("Test")
+    win.add_2.set("Test")
+    win.email_add.set("Test")
+    win.post_code.set("000 000")
+    win.phone_no.set("123")
+
+    win.username.set("tester")
+    win.password.set("StrongPass123!")
+
+
+    result = win.validate_user_inputs(False)
+
+    assert result == True
