@@ -1,11 +1,24 @@
 from icecream import ic
-from login_window import *
-from main_window import *
+import login_window as lw
+import main_window as mw
 
 
 if __name__ == "__main__":
-    Login_process = Login_Window()
-    result = Login_process.run()
+    
+    # # login window
+    # Login_process = lw.Login_Window()
+    # result = Login_process.run()
+
+    # # login completed 
+    # # main
+    # if result:
+    #     main_win = mw.Main(result[0],result[1])
+    #     result = main_win.run()
+
+
+    test_login = ["USR-001","CUS_USR"]
+    main_win = mw.Main(test_login[0],test_login[1])
+    result = main_win.run()
 
     # Login_process = Login_Window()
     # data = Login_process.encryption("123", True)

@@ -159,7 +159,7 @@ class Reg_Window(tk.Toplevel):
             return False
 
         # Step 2: Login data
-        postcode_id = self.validate_postcode()
+        postcode_id = self.validate_postcode(create)
         
         # final step: create user/login_details
         result = self.register_customer(postcode_id, create)
@@ -333,6 +333,12 @@ class Reg_Window(tk.Toplevel):
                 output = result[1][0][0]
             else:
                 output = postcode_id
+
+            # commit records (false=testing)
+            # close db connection
+            if create:
+                ic("Called")
+                conn.commit()
 
             conn.close()
 

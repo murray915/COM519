@@ -13,10 +13,10 @@ class Login_Window(tk.Tk):
 
         self.geometry(uf.get_settings_data()["ktinker_settings"]["login_geometry"])
         self.title('Login Window')
-        self.key = None
-        self.f_key = None
+        self.key = None # updated in func
+        self.f_key = None  # updated in func
         self.get_key()
-        self.result = None       
+        self.result = None
 
         usernameLabel = tk.Label(self, text="User Name").grid(row=0, column=0)
         self.username = tk.StringVar()
@@ -100,6 +100,8 @@ class Login_Window(tk.Tk):
                     if self.encryption(result[1][0][-1],False) == str(self.password.get()):
                         self.result = True
                         messagebox.showinfo("showinfo", "correct login and password")
+                        self.result = [result[1][0][0],result[1][0][6]]
+                        self.destroy()
                     else:
                         self.result = False
                         messagebox.showwarning("Warning", "Incorrect password")      
@@ -114,7 +116,6 @@ class Login_Window(tk.Tk):
                 return "Database connection error"
             
             # completed process
-            self.destroy()
             return self.result
         
         except Exception as err:
