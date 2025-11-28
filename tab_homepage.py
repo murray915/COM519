@@ -29,6 +29,7 @@ class Tab1(ttk.Frame):
         ttk.Label(photo_info_frame, text=
                   "This application allows you to book availble services from local garages " \
                   "\n\n > Please select the Booking Tab to book a service/appointment if you know where & what you want" \
+                  "\n\n > Please select the Stock Tab to see/add items, check stock levels, or deactivate items" \
                   "\n\n > Please select the Garages Tab to see which Garages & services are availble for them" \
                   "\n\n > Please select the Settings Tab to update any Account Data"
                   ).grid(row=1, column=0)
