@@ -167,4 +167,4 @@ def update_setting_data(data) -> bool:
     
     except Exception as err: # Exception Block. Return data to user & False
         ic(f"\n\n** Unexpected {err=}, {type(err)=} ** \n\n")  
-        return False    
+        return False 

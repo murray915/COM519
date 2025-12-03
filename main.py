@@ -1,7 +1,9 @@
 from icecream import ic
 import login_window as lw
 import main_window as mw
-
+import utility_functions as uf
+import image_functions as ifc
+import csv
 
 if __name__ == "__main__":
     
@@ -15,21 +17,13 @@ if __name__ == "__main__":
     #     main_win = mw.Main(result[0],result[1])
     #     result = main_win.run()
 
+    hello = True
 
-    test_login = ["USR-001","CUS_USR"]
-    main_win = mw.Main(test_login[0],test_login[1])
-    result = main_win.run()
+    if hello:        
+        test_login = ["USR-001","CUS_USR"]
+        main_win = mw.Main(test_login[0],test_login[1])
+        result = main_win.run()
 
-    # Login_process = Login_Window()
-    # data = Login_process.encryption("123", True)
+    else:
 
-    # db = uf.get_database_connection()
-    # value_username = '123'
-    # value_password = data
-
-    # ic(value_username, value_password)
-
-    # sql = 'UPDATE login_details SET password = ? WHERE user_id = "USR-001"'
-    # db.update(sql, (value_password,))
-    # db.commit()
-    # db.close()
+        pass

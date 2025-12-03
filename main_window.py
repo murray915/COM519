@@ -6,7 +6,7 @@ from icecream import ic
 
 from tab_homepage import Tab1
 from tab_book_appointments import Tab2
-from tab_settings import Tab3
+from tab_stock import Tab3
 
 
 class Main(tk.Tk):

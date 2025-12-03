@@ -222,7 +222,7 @@ class Reg_Window(tk.Toplevel):
             return False
         
         except Exception as err:
-            ic(f"Unexpected error: {err}, type={type(err)}")
+            print(f"Unexpected error: {err}, type={type(err)}")
             return err
 
 
@@ -293,7 +293,7 @@ class Reg_Window(tk.Toplevel):
             return False
     
         except Exception as err:
-            ic(f"Unexpected error: {err}, type={type(err)}")
+            print(f"Unexpected error: {err}, type={type(err)}")
             return err
 
 
@@ -304,6 +304,7 @@ class Reg_Window(tk.Toplevel):
         create default True, if testing, pass False        
         """
         try:
+            conn = None
 
             output = "0"
             postcode = self.post_code.get().strip().strip(" ")
@@ -345,8 +346,11 @@ class Reg_Window(tk.Toplevel):
             return output
 
         except Exception as err:
-            ic(f"Unexpected error: {err}, type={type(err)}")
-            conn.close()
+            print(f"Unexpected error: {err}, type={type(err)}")
+            if conn:
+                conn.close()
+            else:
+                pass
             return err
 
 
@@ -358,6 +362,7 @@ class Reg_Window(tk.Toplevel):
         """
         
         try:
+                conn = None
                 
                 user_params = [
                     (self.first_name.get() + " " + self.surname_name.get()),
@@ -426,8 +431,11 @@ class Reg_Window(tk.Toplevel):
                 
 
         except Exception as err:
-            ic(f"Unexpected error: {err}, type={type(err)}")
-            conn.close()
+            print(f"Unexpected error: {err}, type={type(err)}")
+            if conn:
+                conn.close()
+            else:
+                pass
             return err
         
 

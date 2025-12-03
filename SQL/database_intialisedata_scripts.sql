@@ -31,8 +31,8 @@ VALUES
     ('PST-016','BS8 3JD'),
     ('PST-017','BN2 1RD'),
     ('PST-018','M19 1AQ'),
-    ('PST-019','MK9 1BB'),(
-    ('PST-020','LS11 5TP'),
+    ('PST-019','MK9 1BB'),
+	('PST-020','LS11 5TP'),
     ('PST-021','CF10 5AE')
 ;
 
@@ -178,7 +178,7 @@ INSERT INTO users(
 	access_code,
 	account_creation_date)
 VALUES
-    ('USR-001','CUS-001','N/A','Oliver Smith','12 High Street, Cambridge','PST-001','oliver.smith@email.com','07123 456789','N/A','N/A','N/A','N/A','CUS_USR','2025-09-12'),
+    ('USR-001','CUS-001','N/A','Oliver Smith','12 High Street, Cambridge','PST-001','oliver.smith@email.com','07123 456789','N/A','N/A','N/A','N/A','CUS_USR','2025-09-12',1),
     ('USR-002','CUS-002','N/A','Amelia Jones','Flat 4, 22 King’s Road, London','PST-002','amelia.jones@email.com','07234 567890','1','N/A','N/A','N/A','CUS_USR_MEM','2025-10-25'),
     ('USR-003','CUS-003','N/A','Jack Taylor','78 Church Lane, Manchester','PST-003','jack.taylor@email.com','07345 678901','N/A','N/A','N/A','N/A','CUS_USR','2025-11-15'),
     ('USR-004','CUS-004','N/A','Olivia Brown','5 Rosewood Close, Birmingham','PST-004','olivia.brown@email.com','07456 789012','N/A','N/A','N/A','N/A','CUS_USR','2025-10-28'),

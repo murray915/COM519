@@ -1,7 +1,9 @@
 import tkinter as tk
+import utility_functions as uf
 from tkinter import ttk
 from tkinter import PhotoImage
 from prettytable import PrettyTable
+
 
 class Tab1(ttk.Frame):    
     def __init__(self, parent, curr_user):
@@ -14,6 +16,9 @@ class Tab1(ttk.Frame):
         self.curr_user = curr_user
         self.tab_name = "Homepage"
 
+        self.table_1 = None
+        self.table_2 = None
+        
         # general params
         self.frame = tk.Frame(self)
         self.frame.pack()
@@ -35,48 +40,62 @@ class Tab1(ttk.Frame):
                   ).grid(row=1, column=0)
         
         # frame 2 - User Account Info
-        user_info_frame = tk.LabelFrame(self.frame, text="Notifications")
+        user_info_frame = tk.LabelFrame(self.frame, text="Notifications    \t\t\t\t\t\tFuture Bookings  \t\t\t\t\t\tCompleted Bookings")
         user_info_frame.grid(row=1, column=0, columnspan=3, padx=10, pady=10)
         
-        x=PrettyTable()
-        x.field_names = ["City name", "Area", "Population", "Annual Rainfall"]
-
-        x.add_row(["Adelaide", 1295, 1158259, 600.5])
-        x.add_row(["Brisbane", 5905, 1857594, 1146.4])
-        x.add_row(["Darwin", 112, 120900, 1714.7])
-        x.add_row(["Hobart", 1357, 205556, 619.5])
-        x.add_row(["Sydney", 2058, 4336374, 1214.8])
-        x.add_row(["Melbourne", 1566, 3806092, 646.9])
-        x.add_row(["Perth", 5386, 1554769, 869.4])
+        self.get_table_data()
 
         # Convert table → string
-        table_text = x.get_string()
+        table_text = self.table_1
 
-        # Use Text widget instead of Label
-        txt = tk.Text(user_info_frame, font=("Courier New", 10), width=60, height=12)
+        # Frame for scrollbars + text
+        text_frame = tk.Frame(user_info_frame)
+        text_frame.grid(row=0, column=0, padx=10, pady=10)
+
+        txt = tk.Text(text_frame, 
+                    font=("Courier New", 10), 
+                    width=80, 
+                    height=15, 
+                    wrap="none")
+
+        # Scrollbars
+        scroll_y = tk.Scrollbar(text_frame, orient="vertical", command=txt.yview)
+        scroll_x = tk.Scrollbar(text_frame, orient="horizontal", command=txt.xview)
+
+        txt.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
+
+        txt.grid(row=0, column=0, sticky="nsew")
+        scroll_y.grid(row=0, column=1, sticky="ns")
+        scroll_x.grid(row=1, column=0, sticky="ew")
+
         txt.insert("1.0", table_text)
         txt.config(state="disabled")
-        txt.grid(row=0, column=0, padx=10, pady=10)
-
-        y=PrettyTable()
-        y.field_names = ["City name", "Area", "Population", "Annual Rainfall"]
-
-        y.add_row(["Adelaide", 1295, 1158259, 600.5])
-        y.add_row(["Brisbane", 5905, 1857594, 1146.4])
-        y.add_row(["Darwin", 112, 120900, 1714.7])
-        y.add_row(["Hobart", 1357, 205556, 619.5])
-        y.add_row(["Sydney", 2058, 4336374, 1214.8])
-        y.add_row(["Melbourne", 1566, 3806092, 646.9])
-        y.add_row(["Perth", 5386, 1554769, 869.4])
 
         # Convert table → string
-        table_text_2 = y.get_string()
+        table_text = self.table_2
 
-        # Use Text widget instead of Label
-        txt = tk.Text(user_info_frame, font=("Courier New", 10), width=60, height=12)
-        txt.insert("1.0", table_text_2)
+        # Frame for scrollbars + text
+        text_frame = tk.Frame(user_info_frame)
+        text_frame.grid(row=0, column=1, padx=10, pady=10)
+
+        txt = tk.Text(text_frame, 
+                    font=("Courier New", 10), 
+                    width=80, 
+                    height=15, 
+                    wrap="none")
+
+        # Scrollbars
+        scroll_y = tk.Scrollbar(text_frame, orient="vertical", command=txt.yview)
+        scroll_x = tk.Scrollbar(text_frame, orient="horizontal", command=txt.xview)
+
+        txt.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
+
+        txt.grid(row=0, column=0, sticky="nsew")
+        scroll_y.grid(row=0, column=1, sticky="ns")
+        scroll_x.grid(row=1, column=0, sticky="ew")
+
+        txt.insert("1.0", table_text)
         txt.config(state="disabled")
-        txt.grid(row=0, column=1, padx=10, pady=10)
 
 
     def get_user_info(self):
@@ -85,3 +104,65 @@ class Tab1(ttk.Frame):
         update respective self. per
         """
         pass
+
+
+    def get_table_data(self) -> tuple[bool, str | None]:
+        """
+        update self.table 1/2 with data from bookings
+
+        """
+        
+        try:
+            
+            # db connection & sql script get
+            conn = uf.get_database_connection()
+            sql = uf.load_sql_file("booking_data_scripts.sql")
+            sql_statements = sql.replace("\n", "").split(";")
+
+            # enact sql scripts
+            for i, sql in enumerate(sql_statements):
+
+                # get user_name
+                if i == 0:
+                    user_name = conn.query(sql, (self.curr_user,))
+
+                # get table 1 data
+                if i == 1:
+                    data = conn.query(sql, (user_name[1][0][0],))
+
+                    # setup table
+                    self.table_1=PrettyTable()
+                    self.table_1.field_names = ["Login Name", "Booking Ref", "Date of Booking", "Garage Name", "Customer Vechicle Reg","Package","Parts Quoted/Recieved","QTY of Parts"]
+
+                    # add data to self.table
+                    for i in data[1]:
+                        self.table_1.add_row(i)
+
+                    self.table_1 = self.table_1.get_string()
+            
+                # get table 2 data
+                if i == 2:
+                    data = conn.query(sql, (user_name[1][0][0],))
+
+                    # setup table
+                    self.table_2=PrettyTable()
+                    self.table_2.field_names = ["Login Name", "Booking Ref", "Date of Booking", "Garage Name", "Customer Vechicle Reg","Package","Parts Quoted/Recieved","QTY of Parts"]
+
+                    # add data to self.table
+                    for i in data[1]:
+                        self.table_2.add_row(i)
+
+                    self.table_2 = self.table_2.get_string()
+
+
+            conn.close(False)                        
+            return True
+
+        except Exception as err:
+            print(f"Unexpected error: {err}, type={type(err)}")
+            if conn:
+                conn.close()
+            else:
+                pass
+
+            return False, str(err)
