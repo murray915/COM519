@@ -2,18 +2,14 @@ import tkinter as tk
 import icecream as ic
 import utility_functions as uf
 import image_functions as ifc
-import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import csv
-import pandas as pd
-import os
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter import ttk
 
 class Tab3(ttk.Frame):
-    def __init__(self, parent, curr_user):
-        super().__init__(parent)
+    def __init__(self, parent, curr_user, style_name):
+        super().__init__(parent, style=style_name)
 
         self.curr_user = curr_user
         self.tab_name = "Stock"
@@ -25,8 +21,17 @@ class Tab3(ttk.Frame):
         self.image = None
         self.active_flag = '-'
 
+        self.stock_part_id = '-'
+        self.stock_garage_id = '-'
+        self.stock_name = '-'
+        self.stock_description = '-'
+        self.stock_common_repair_group = '-'
+        self.stock_new_level = '-'
+        self.stock_current_level = 0
+
         self.stock_level = None
         self.list_part_ids = None
+        self.list_garage_ids = None
         self.searchkey = None
         self.image_var = None
 
@@ -34,8 +39,8 @@ class Tab3(ttk.Frame):
         "\n> To view items in the top frame, please select the ITM reference from the dropdown or search using the search bar, then press 'Get Item Data'." \
         "\n> To create new items input the name, description and Common Repair Group, and 'create item', once created an image can be uploaded using the newly created item record" \
         "\n> To upload image, input the ITM number of an item. Select png/jpg filetype and press the button to start the folderwindow to select the file" \
-        "\n\n> Below the item create/show the Current stock Information is shown, and allow increasing current stock. Primary Garage for user taken as default" \
-        "\n> The third frame will display recent demands for the selected item, bookings by week"
+        "\n\n> Below the item create/show the Current stock Information is shown, and allow increasing current stock. Select a Garage and Item, then press update when the correct details are displayed." \
+        "\n> The final frame displays all the items consumed by month, across all garages"
         ).pack(pady=20)
 
         # general params
@@ -54,16 +59,9 @@ class Tab3(ttk.Frame):
         # row 1, col 5
         self.item_comsumption_graph_frame = self.frame_3()
 
-        btn = ttk.Button(self.frame, text="Refresh Plot", command=self.refresh_frame_3)
-        btn.grid(row=2, column=1)
-
-        # frame 3 - Stock Info
-        #item_info_frame = tk.LabelFrame(self.frame, text="Stock Information")
-        #item_info_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
-
-        # frame 4 - Display Chart orders. Y = Date, X = QTY
-        #item_info_frame = tk.LabelFrame(self.frame, text="Stock Consumption Graphics")
-        #item_info_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
+        # frame 4 - Stock Info
+        # row 2, col 0
+        self.Stock_Info_and_update = self.frame_4()
 
 
     def frame_1(self) -> object:
@@ -110,7 +108,7 @@ class Tab3(ttk.Frame):
         self.searchkey_entry = tk.Entry(item_info_frame, textvariable=self.searchkey)
         self.searchkey_entry.grid(row=0, column=1)
 
-        get_data_button = ttk.Button(item_info_frame,text='Get Item Data',command=self.get_stock_item_info)
+        get_data_button = tk.Button(item_info_frame,text='Get Item Data',command=self.get_stock_item_info)
         get_data_button.grid(row=0, column=2)
         
         self.item_combobox = ttk.Combobox(item_info_frame, values=self.list_part_ids)
@@ -182,7 +180,7 @@ class Tab3(ttk.Frame):
             conn = None
 
             item_comsumption_graph_frame = tk.LabelFrame(self.frame, text="Item Consumption Data")
-            item_comsumption_graph_frame.grid(row=1, column=1, columnspan=10, padx=10, pady=10)
+            item_comsumption_graph_frame.grid(row=1, column=6, columnspan=10, padx=10, pady=10)
     
             # db connection & sql script get
             conn = uf.get_database_connection()
@@ -196,47 +194,12 @@ class Tab3(ttk.Frame):
                 if i == 5:       
                     data = conn.query(sql, ())
 
-            # create csv for data
-            with open('./data/temp.csv', 'w', newline='') as fp:
-                myFile = csv.writer(fp)
-                myFile.writerow(data[0])
-                
-                # add data into csv
-                for i in data[1]:
-                    myFile.writerow(i)
-            
-            # csv params
-            fp_file = './data/temp.csv'
-            fp = pd.read_csv('./data/temp.csv')
-
-            # plot titles
-            pivot = fp.pivot_table(
-                index="year_month",
-                columns="part_id",
-                values="qty_consumed",
-                aggfunc="sum"
-            )
-
-            # plt & ktinker params
-            fig, ax = plt.subplots(figsize=(8, 4))
-            pivot.plot(ax=ax, marker="o")
-
-            # graph params
-            ax.set_title("Itm Consumption per Part (by Month)")
-            ax.set_xlabel("Year-Month")
-            ax.set_ylabel("Qty Consumed")
-            plt.setp(ax.get_xticklabels(), rotation=45)
-            fig.tight_layout()
-            #plt.show()
+            fig = uf.build_matplot_objects_stocktab(data, "Item Consumption per Part (by Month)","Year-Month","Qty Consumed","part_id","qty_consumed")
 
             # create canvas & plot graph
             canvas = FigureCanvasTkAgg(fig, master=item_comsumption_graph_frame)
             canvas.draw()
             canvas.get_tk_widget().pack(fill="both", expand=True)
-
-            # delete temp png file
-            if os.path.exists(fp_file):
-                os.remove(fp_file) 
 
             return True, None
 
@@ -250,29 +213,79 @@ class Tab3(ttk.Frame):
             return False, str(err)
     
 
-    def refresh_frame_3(self):
+    def frame_4(self) -> tuple[object, str | None]:
         """
-        Refresh data in frame 3. destroy and recreate
+        constructor for frame 4 : Stock_Info_and_update
         
-        :param self: Description
-        :return: Description
-        :rtype: type[bool]
         """
         try:
-            # Destroy if it already exists
-            if hasattr(self, "item_image_upload_frame") and self.item_comsumption_graph_frame is not None:
-                self.item_comsumption_graph_frame.destroy()
+            conn = None
 
-            # Recreate new frame
-            self.item_comsumption_graph_frame = self.frame_3()
+            Stock_Info_and_update = tk.LabelFrame(self.frame, text="Stock Information & Update")
+            Stock_Info_and_update.grid(row=1, column=0, columnspan=5, padx=10, pady=10)
+    
+            # frame get data 
+            # Labels & variable
+            tk.Label(Stock_Info_and_update, text="Dropdown List for Items :").grid(row=0, column=0)
+            tk.Label(Stock_Info_and_update, text="Dropdown List for Garages :").grid(row=1, column=0)
 
-            btn = ttk.Button(self.frame, text="Refresh Plot", command=self.refresh_frame_3)
-            btn.grid(row=2, column=1)
+            self.stock_partid_var = tk.StringVar(value=self.stock_part_id)
+            tk.Label(Stock_Info_and_update, text="Item ID").grid(row=2, column=0)
+            tk.Label(Stock_Info_and_update, textvariable=self.stock_partid_var).grid(row=2, column=1)
+
+            self.stock_garageid_var = tk.StringVar(value=self.stock_garage_id)
+            tk.Label(Stock_Info_and_update, text="Garage ID").grid(row=3, column=0)
+            tk.Label(Stock_Info_and_update, textvariable=self.stock_garageid_var).grid(row=3, column=1)
+
+            self.stock_name_var = tk.StringVar(value=self.stock_name)
+            tk.Label(Stock_Info_and_update, text="Item Name").grid(row=4, column=0)
+            tk.Label(Stock_Info_and_update, textvariable=self.stock_name_var).grid(row=4, column=1)
+
+            self.stock_description_var = tk.StringVar(value=self.stock_description)
+            tk.Label(Stock_Info_and_update, text="Item Description").grid(row=5, column=0)
+            tk.Label(Stock_Info_and_update, textvariable=self.stock_description_var).grid(row=5, column=1)
+            
+            self.stock_current_level_var = tk.StringVar(value=self.stock_current_level)
+            tk.Label(Stock_Info_and_update, text="Current Stock level").grid(row=6, column=0)
+            tk.Label(Stock_Info_and_update, textvariable=self.stock_current_level_var).grid(row=6, column=1)
+            
+            self.stock_new_level = tk.StringVar()
+            tk.Label(Stock_Info_and_update, text="New Stock Level").grid(row=7, column=0)
+            self.stock_new_level_entry = tk.Entry(Stock_Info_and_update, textvariable=self.stock_new_level)
+            self.stock_new_level_entry.grid(row=7, column=1)
+
+            # entrys
+            self.stock_item_combobox = ttk.Combobox(Stock_Info_and_update, values=self.list_part_ids)
+            self.stock_item_combobox.grid(row=0, column=1, columnspan=3, sticky="ew")
+
+            self.item_combobox_garages = ttk.Combobox(Stock_Info_and_update, values=self.list_garage_ids)
+            self.item_combobox_garages.grid(row=1, column=1, columnspan=3, sticky="ew")
+            
+            update_item_data = tk.Button(Stock_Info_and_update, text="Get Item/Stock Data", command=self.get_stock_garage_info)
+            update_item_data.grid(row=0, column=4)
+
+            upload_png_button = tk.Button(Stock_Info_and_update, text="Update Stock Level", command=self.get_stock_garage_info)
+            upload_png_button.grid(row=6, column=4)
+
+            self.get_stock_garage_info()
+
+            # format frame widgets
+            for widget in Stock_Info_and_update.winfo_children():
+                widget.grid_configure(padx=10, pady=5)
+
+            return Stock_Info_and_update      
+          
 
         except Exception as err:
             print(f"Unexpected error: {err}, type={type(err)}")
+            if conn:
+                conn.close()
+            else:
+                pass
+
             return False, str(err)
-        
+    
+       
         
     def get_stock_item_info(self) -> tuple[bool, str | None]:
         """
@@ -310,24 +323,39 @@ class Tab3(ttk.Frame):
                 
                     # if data found for search/item selector, update self data
                     if part_info[1]:
-                        self.partid_var.set(part_info[1][0][0])
-                        self.name_var.set(part_info[1][0][1])
-                        self.description_var.set(part_info[1][0][2])
-                        self.commongroup_var.set(part_info[1][0][3])
-                        self.image = part_info[1][0][4]   
+                        rows = part_info[1]
 
-                        if part_info[1][0][5] == 1:
+                        if rows:
+                            (
+                                partid,
+                                name,
+                                description,
+                                commongroup,
+                                image,
+                                activeflag
+                            ) = rows[0]
+
+                        self.partid_var.set(partid)
+                        self.name_var.set(name)
+                        self.description_var.set(description)
+                        self.commongroup_var.set(commongroup)
+                        self.image = image
+
+                        if activeflag == 1:
                             self.activeflag_var.set("Active")
                         else:
                             self.activeflag_var.set("Inactive")
 
-                        self.image = ifc.get_tk_image_from_db(self.part_id)
-
                         if self.image is not None:
-
+                            self.image = ifc.get_tk_image_from_db(self.part_id)
                             self.image_label.config(image=self.image)
                             self.image_label.image = self.image
-                    
+
+                        else:
+                            self.image = None
+                            self.image_label.config(image="")
+                            self.image_label.image = None
+
                     # error message for nonfound searches
                     elif self.part_id != '-':
                         messagebox.showinfo("Search Error", 
@@ -360,6 +388,141 @@ class Tab3(ttk.Frame):
         
             return True
     
+        except Exception as err:
+            print(f"Unexpected error: {err}, type={type(err)}")
+            if conn:
+                conn.close()
+            else:
+                pass
+
+            return False, str(err)
+
+
+    def get_stock_garage_info(self) -> tuple[bool, str | None]:
+        """
+        get garage/item Stock information from inputs into frame_4
+
+        return bool for success and errorstring (whereapplic)
+        """
+
+        try:
+            # set general params
+            conn = None
+            garage_id = None
+            part_id = None
+
+            # get user input params
+            dropdown_checker_garage = self.item_combobox_garages.get()
+            dropdown_checker_item = self.stock_item_combobox.get()
+            new_stock_input = self.stock_new_level_entry.get()
+
+            # check for user inputs into all boxes
+            # only search OR update can be enacted
+            if (dropdown_checker_garage != '' or dropdown_checker_item != '') and new_stock_input != '':
+                messagebox.showerror("Show Error","Please only search or update currently selected stock.")
+                raise ValueError("Search vs Update conflict")
+            
+            if (dropdown_checker_garage == '' and dropdown_checker_item != '') or dropdown_checker_garage != '' and dropdown_checker_item == '':
+                messagebox.showerror("Show Error","Only one of the required inputs completed. Please ensure garage and items are selected.")
+                raise ValueError("Search input failure.")
+                        
+            # get the part_id from search/selector
+            if dropdown_checker_garage != '':
+                cleaned_value = dropdown_checker_garage[0:8]
+                garage_id = cleaned_value.replace("-","_")
+
+            if dropdown_checker_item != '':
+                cleaned_value = dropdown_checker_item[0:7]
+                part_id = cleaned_value
+
+            # db connection & sql script get
+            conn = uf.get_database_connection()
+            sql = uf.load_sql_file("garage_scripts.sql")
+            sql_statements = sql.replace("\n", "").split(";")
+        
+            # enact sql scripts
+            for i, sql in enumerate(sql_statements):
+
+                # get specific item_id data
+                if i == 0:
+                    next_garage_id = conn.query(sql, ())
+                    next_garage_id = next_garage_id[1][0][0]
+
+                # get all garage_id data for dropdown
+                if i == 1:
+                    all_garage_data = conn.query(sql, ())
+
+                    if all_garage_data:
+                        output_list = []
+
+                        # clean data intp list
+                        for i in all_garage_data[1]:
+                            output_list.append(i[0])
+                        
+                        # add to self var
+                        self.list_garage_ids = output_list
+            
+                    # reset the combobox list on datarefresh
+                    self.item_combobox_garages['values'] = self.list_garage_ids
+                    self.item_combobox_garages.set('')
+
+
+                # get stock levels for garage_id & item_id
+                if i == 2 and (dropdown_checker_garage != '' and dropdown_checker_item != ''):
+                    # search params
+                    sql_garage_id = f'stocklevel_{garage_id}'
+                    sql = sql.replace("replace1", sql_garage_id)
+                    data = conn.query(sql, (part_id,))
+
+                    # if data found for search/item selector, update self data
+                    if data[1]:
+                        rows = data[1]
+
+                        if rows:
+                            (
+                                partid,
+                                name,
+                                description,
+                                curr_lvl
+                            ) = rows[0]
+
+                        self.stock_partid_var.set(partid)
+                        self.stock_name_var.set(name)
+                        self.stock_description_var.set(description)
+                        self.stock_current_level_var.set(curr_lvl)
+
+                        self.stock_garageid_var.set(dropdown_checker_garage[0:8])
+
+                    self.stock_item_combobox.set('')
+
+                if i == 3 and new_stock_input != '' and (dropdown_checker_garage == '' and dropdown_checker_item == ''): 
+                    
+                    # check user input
+                    if not uf.is_nonnegative_whole_number(new_stock_input):
+                        messagebox.showerror("Show Error","New Stock input has to be a positive numeric value. Please ensure input is a whole number, of 0 or above.")
+                        raise ValueError("User input numeric failure.")
+                    
+                    # search params
+                    garage_id = self.stock_garageid_var.get()
+                    sql_garage_id = f'stocklevel_{garage_id.replace("-","_")}'             
+                    sql = sql.replace("replace1", sql_garage_id)
+                    conn.update(sql, (self.stock_new_level_entry.get(),self.stock_partid_var.get()))
+
+                    messagebox.showinfo("Show Info",f"Stock Level updated for item {self.stock_partid_var.get()}, for garage {garage_id} ")
+
+                    self.stock_new_level.set('')
+                    self.stock_partid_var.set('-')
+                    self.stock_name_var.set('-')
+                    self.stock_description_var.set('-')
+                    self.stock_current_level_var.set('-')
+                    self.stock_garageid_var.set('-')
+                    
+
+            # commit & close
+            conn.close(True)
+        
+            return True
+
         except Exception as err:
             print(f"Unexpected error: {err}, type={type(err)}")
             if conn:

@@ -4,3 +4,4 @@ SELECT * FROM customer_booking_data WHERE "Login Name" = ? AND date(substr("Date
 
 -- first script: get booking data from past, input user_name
 -- second script: get booking data in the future, input user_name
+-- third script: get booking data in the past, input user_name

@@ -1,5 +1,10 @@
 from icecream import ic
 import os
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+import csv
+import os
 
 def get_database_connection() -> object | bool:
     """
@@ -168,3 +173,61 @@ def update_setting_data(data) -> bool:
     except Exception as err: # Exception Block. Return data to user & False
         ic(f"\n\n** Unexpected {err=}, {type(err)=} ** \n\n")  
         return False 
+    
+
+def build_matplot_objects_stocktab(data, title:str, xlabel:str, ylabel:str, columns_input: str, values_input: str):
+    """
+    Build and return a Matplotlib Figure.
+    Inputs  : title:str, xlabel:str, ylabel:str. Self stating
+            : columns_input, values_input outline the data to plot
+            
+    :param data: Tuple containing (header_row, data_rows)
+    :return: matplotlib.figure.Figure
+    """
+
+    # create temp csv & dump data
+    temp_path = "./data/temp.csv"
+    with open(temp_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(data[0])  # header
+        writer.writerows(data[1]) # rows
+
+    # read the data back from temp csv
+    df = pd.read_csv(temp_path)
+
+    # create the plot pivot
+    pivot = df.pivot_table(
+        index="year_month",
+        columns=columns_input,
+        values=values_input,
+        aggfunc="sum"
+    )
+
+    # create plot
+    fig, ax = plt.subplots(figsize=(8, 4))
+    pivot.plot(ax=ax, marker="o")
+
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    plt.setp(ax.get_xticklabels(), rotation=45)
+    fig.tight_layout()
+
+    # cleanup temp file
+    if os.path.exists(temp_path):
+        os.remove(temp_path)
+
+    return fig
+
+def is_nonnegative_whole_number(input_value) -> bool:
+    """
+    Docstring for is_nonnegative_whole_number
+    
+    :param input_value: Description
+    """
+    try:
+        xf = float(input_value)
+        return xf.is_integer() and xf >= 0
+    
+    except (TypeError, ValueError):
+        return False

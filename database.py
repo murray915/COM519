@@ -6,6 +6,7 @@ class Database:
         self.path = os.path.dirname(os.path.abspath(__file__))
         self.fullpath = os.path.join(self.path, name)
         self._conn = sqlite3.connect(self.fullpath)
+        self._conn.execute("PRAGMA foreign_keys = ON")
         self._cursor = self._conn.cursor()
 
     def __enter__(self):

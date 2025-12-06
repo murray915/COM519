@@ -6,8 +6,8 @@ from prettytable import PrettyTable
 
 
 class Tab1(ttk.Frame):    
-    def __init__(self, parent, curr_user):
-        super().__init__(parent)
+    def __init__(self, parent, curr_user, style_name):
+        super().__init__(parent, style=style_name)
 
         self.prev_bookings = 0
         self.upcoming_bookings = 0

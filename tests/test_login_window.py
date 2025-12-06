@@ -4,7 +4,7 @@ from login_window import *
 import utility_functions as uf
 from unittest.mock import patch, MagicMock
 
-
+@patch('tkinter.Tk', new=MagicMock)
 def test_encypt_data():
     """
     test function to encypt/decrypt data on input
@@ -14,7 +14,7 @@ def test_encypt_data():
         data = Login_process.encryption("test", True)
         assert data != "test"
 
-
+@patch('tkinter.Tk', new=MagicMock)
 def test_decypt_data():
     """
     test function to encypt/decrypt data on input

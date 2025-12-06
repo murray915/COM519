@@ -311,7 +311,7 @@ class Reg_Window(tk.Toplevel):
 
             # db connection & sql script get
             conn = uf.get_database_connection()
-            sql = uf.load_sql_file("postcode_check.sql")
+            sql = uf.load_sql_file("postcode_scripts.sql")
             sql_statements = sql.replace("\n", "").split(";")
 
             # enact sql scripts (3 total)

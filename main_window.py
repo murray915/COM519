@@ -7,6 +7,7 @@ from icecream import ic
 from tab_homepage import Tab1
 from tab_book_appointments import Tab2
 from tab_stock import Tab3
+from tab_packages import Tab4
 
 
 class Main(tk.Tk):
@@ -18,22 +19,51 @@ class Main(tk.Tk):
         self.access_code = access_code
 
         # ktinker params
+        self.configure(bg="lightgray")
         self.title("Garage Appointment & Service Application")
         self.geometry(uf.get_settings_data()["ktinker_settings"]["app_geometry"])
-        
-        self.notebook = ttk.Notebook(self)
+
+        style = ttk.Style()
+        style.theme_use("clam")
+        style.configure(
+            "Custom.TNotebook",
+            background="lightgray",
+            borderwidth=0
+        )
+
+        # Tabs background
+        style.configure(
+            "Custom.TNotebook.Tab",
+            background="lightgray",
+            padding=[10, 5]
+        )
+
+        # Selected tab background
+        style.map(
+            "Custom.TNotebook.Tab",
+            background=[("selected", "white")],
+            foreground=[("selected", "black")]
+        )
+
+        # For tab content frames
+        style.configure("TabFrame.TFrame", background="white")
+    
+
+        self.notebook = ttk.Notebook(self, style="Custom.TNotebook")
         self.notebook.pack(expand=True, fill="both")
 
         # Tabs
-        self.tab1 = Tab1(self.notebook, self.curr_user)
-        self.tab2 = Tab2(self.notebook, self.curr_user)
-        self.tab3 = Tab3(self.notebook, self.curr_user)
+        self.tab1 = Tab1(self.notebook, self.curr_user, "TabFrame.TFrame")
+        self.tab2 = Tab2(self.notebook, self.curr_user, "TabFrame.TFrame")
+        self.tab3 = Tab3(self.notebook, self.curr_user, "TabFrame.TFrame")
+        self.tab4 = Tab4(self.notebook, self.curr_user, "TabFrame.TFrame")
 
         # Add to Notebook
         self.notebook.add(self.tab1, text=self.tab1.tab_name)
         self.notebook.add(self.tab2, text=self.tab2.tab_name)
         self.notebook.add(self.tab3, text=self.tab3.tab_name)
-        
+        self.notebook.add(self.tab4, text=self.tab4.tab_name)
+
         # Track last selected tab index
         self.last_tab = 0
         self.first_event = True
