@@ -8,7 +8,7 @@ from tab_homepage import Tab1
 from tab_book_appointments import Tab2
 from tab_stock import Tab3
 from tab_packages import Tab4
-
+from tab_account import Tab5
 
 class Main(tk.Tk):
     def __init__(self, curr_user, access_code):
@@ -47,22 +47,23 @@ class Main(tk.Tk):
 
         # For tab content frames
         style.configure("TabFrame.TFrame", background="white")
-    
 
         self.notebook = ttk.Notebook(self, style="Custom.TNotebook")
         self.notebook.pack(expand=True, fill="both")
 
         # Tabs
-        self.tab1 = Tab1(self.notebook, self.curr_user, "TabFrame.TFrame")
-        self.tab2 = Tab2(self.notebook, self.curr_user, "TabFrame.TFrame")
-        self.tab3 = Tab3(self.notebook, self.curr_user, "TabFrame.TFrame")
-        self.tab4 = Tab4(self.notebook, self.curr_user, "TabFrame.TFrame")
+        self.tab1 = Tab1(self.notebook, self, self.curr_user, "TabFrame.TFrame")
+        self.tab2 = Tab2(self.notebook, self, self.curr_user, "TabFrame.TFrame")
+        self.tab3 = Tab3(self.notebook, self, self.curr_user, "TabFrame.TFrame")
+        self.tab4 = Tab4(self.notebook, self, self.curr_user, "TabFrame.TFrame")
+        self.tab5 = Tab5(self.notebook, self, self.curr_user, "TabFrame.TFrame")
 
         # Add to Notebook
         self.notebook.add(self.tab1, text=self.tab1.tab_name)
         self.notebook.add(self.tab2, text=self.tab2.tab_name)
         self.notebook.add(self.tab3, text=self.tab3.tab_name)
         self.notebook.add(self.tab4, text=self.tab4.tab_name)
+        self.notebook.add(self.tab5, text=self.tab5.tab_name)
 
         # Track last selected tab index
         self.last_tab = 0
@@ -115,3 +116,8 @@ class Main(tk.Tk):
 
         # Accept new tab → update last_tab
         self.last_tab = new_tab
+
+    def close_application(self):
+        """Remove a tab from the Notebook."""
+        self.quit()
+        self.destroy()

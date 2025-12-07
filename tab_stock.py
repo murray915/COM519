@@ -8,11 +8,12 @@ from tkinter import filedialog
 from tkinter import ttk
 
 class Tab3(ttk.Frame):
-    def __init__(self, parent, curr_user, style_name):
+    def __init__(self, parent, controller, curr_user, style_name):
         super().__init__(parent, style=style_name)
 
         self.curr_user = curr_user
         self.tab_name = "Stock"
+        self.controller = controller
 
         self.part_id = '-'
         self.name = '-'
@@ -62,7 +63,13 @@ class Tab3(ttk.Frame):
         # frame 4 - Stock Info
         # row 2, col 0
         self.Stock_Info_and_update = self.frame_4()
-
+        
+        # close app button
+        close_app_button = tk.Button(self.frame,
+                text="Close Application",
+                command=self.controller.close_application
+        )
+        close_app_button.grid(row=3, column=3)
 
     def frame_1(self) -> object:
         """

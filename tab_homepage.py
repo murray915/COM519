@@ -6,7 +6,7 @@ from prettytable import PrettyTable
 
 
 class Tab1(ttk.Frame):    
-    def __init__(self, parent, curr_user, style_name):
+    def __init__(self, parent, controller, curr_user, style_name):
         super().__init__(parent, style=style_name)
 
         self.prev_bookings = 0
@@ -15,13 +15,22 @@ class Tab1(ttk.Frame):
 
         self.curr_user = curr_user
         self.tab_name = "Homepage"
-
+        self.controller = controller
+        
         self.table_1 = None
         self.table_2 = None
-        
+
+
         # general params
         self.frame = tk.Frame(self)
         self.frame.pack()
+
+        # close app button
+        close_app_button = tk.Button(self.frame,
+                text="Close Application",
+                command=self.controller.close_application
+        )
+        close_app_button.grid(row=3, column=3)
 
         # frame 1 - photo
         photo_info_frame = tk.LabelFrame(self.frame, text="Welcome to the Garage Booking App")

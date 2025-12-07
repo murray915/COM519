@@ -7,6 +7,10 @@ import csv
 
 
 
+# TODO: fix phone number insert/recovery
+
+
+
 if __name__ == "__main__":
     
     # # login window
@@ -26,5 +30,18 @@ if __name__ == "__main__":
         main_win = mw.Main(test_login[0],test_login[1])
         result = main_win.run()
 
-    else:
+    else: 
         pass
+
+
+        # conn = uf.get_database_connection()
+        # sql = uf.load_sql_file("customer_scripts.sql")
+        # sql_statements = sql.replace("\n", "").split(";")
+
+        # for i, sql in enumerate(sql_statements):
+
+        #     if i == 0:
+        #         veh_id = conn.query(sql, ())
+        #         next_veh_id = veh_id[1][0][0]
+                
+        # conn.close()

@@ -47,7 +47,7 @@ class Reg_Window(tk.Toplevel):
         # frame get data
         # labels
         tk.Label(user_info_frame, text="First Name").grid(row=0, column=0)
-        tk.Label(user_info_frame, text="Surname Name").grid(row=0, column=1)
+        tk.Label(user_info_frame, text="Surname").grid(row=0, column=1)
         tk.Label(user_info_frame, text="Address 1").grid(row=2, column=0)
         tk.Label(user_info_frame, text="Address 2").grid(row=2, column=1)
         tk.Label(user_info_frame, text="Address 3").grid(row=2, column=2)
@@ -159,7 +159,7 @@ class Reg_Window(tk.Toplevel):
             return False
 
         # Step 2: Login data
-        postcode_id = self.validate_postcode(create)
+        postcode_id = self.validate_postcode(None,create)
         
         # final step: create user/login_details
         result = self.register_customer(postcode_id, create)
@@ -297,61 +297,23 @@ class Reg_Window(tk.Toplevel):
             return err
 
 
-    def validate_postcode(self, create=True) -> str:
+    def validate_postcode(self, input_postcode=None, create=True) -> str:
         """
         Check if postcode input exists in db
         If exist return id, if not create & return postcode_id
         create default True, if testing, pass False        
         """
-        try:
-            conn = None
 
-            output = "0"
+        # get postcode data
+        if input_postcode is None:
             postcode = self.post_code.get().strip().strip(" ")
+        else:
+            postcode = input_postcode
 
-            # db connection & sql script get
-            conn = uf.get_database_connection()
-            sql = uf.load_sql_file("postcode_scripts.sql")
-            sql_statements = sql.replace("\n", "").split(";")
+        # get result if exist or not
+        result = uf.validate_postcode(postcode, create)
 
-            # enact sql scripts (3 total)
-            for i, sql in enumerate(sql_statements):
-
-                # get next id
-                if i == 0:
-                    postcode_id = conn.query(sql, ())
-                    postcode_id = postcode_id[1][0][0]
-
-                # check if user input postcode exist
-                if i == 1:
-                    result = conn.query(sql, (postcode,))
-
-                # if no results create new record
-                if i == 2 and not result[1] and create:
-                    conn.insert(sql, (postcode_id,postcode))
-            
-            if result[1]: 
-                output = result[1][0][0]
-            else:
-                output = postcode_id
-
-            # commit records (false=testing)
-            # close db connection
-            if create:
-                ic("Called")
-                conn.commit()
-
-            conn.close()
-
-            return output
-
-        except Exception as err:
-            print(f"Unexpected error: {err}, type={type(err)}")
-            if conn:
-                conn.close()
-            else:
-                pass
-            return err
+        return result
 
 
     def register_customer(self, postcode_id: str, create=True) -> bool | str:

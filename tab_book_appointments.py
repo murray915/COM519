@@ -3,12 +3,13 @@ from tkinter import ttk
 from tkcalendar import Calendar
 
 class Tab2(ttk.Frame):
-    def __init__(self, parent, curr_user, style_name):
+    def __init__(self, parent, controller, curr_user, style_name):
         super().__init__(parent, style=style_name)
 
         self.curr_user = curr_user
         self.tab_name = "Book Appointments"
-
+        self.controller = controller
+        
         ttk.Label(self, text="This is the Book Appointment Tab" \
         "\n> To view items in the top frame, please select the ITM reference from the dropdown or search using the search bar, then press 'Get Item Data'." \
         "\n> To create new items input the name, description and Common Repair Group, and 'create item', once created an image can be uploaded using the newly created item record" \
@@ -19,8 +20,8 @@ class Tab2(ttk.Frame):
 
 
         # general params
-        #self.frame = tk.Frame(self)
-        #self.frame.pack()
+        self.frame = tk.Frame(self)
+        self.frame.pack()
 
         # frame 1 - Item Info
         # row 0, col 0
@@ -33,6 +34,13 @@ class Tab2(ttk.Frame):
         # frame 3 - Item Image Upload
         # row 1, col 5
         #self.item_comsumption_graph_frame = self.frame_3()
+
+        # close app button
+        close_app_button = tk.Button(self.frame,
+                text="Close Application",
+                command=self.controller.close_application
+        )
+        close_app_button.grid(row=3, column=3)
 
 
     # def frame_1(self) -> object:

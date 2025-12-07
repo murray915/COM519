@@ -186,7 +186,7 @@ def test_postcode_validation_exist():
     Reg_Window.__init__(win, parent=None)
 
     win.post_code.set("BS3 5RW")
-    result = win.validate_postcode(False)
+    result = win.validate_postcode(None, False)
 
     assert result == "PST-007"
 
@@ -206,7 +206,7 @@ def test_postcode_validation_does_not_exist():
     postcode_id = postcode_id[1][0][0]
     
     win.post_code.set("000 000")
-    result = win.validate_postcode(False)
+    result = win.validate_postcode(None, False)
 
     assert result == postcode_id
 
@@ -235,3 +235,43 @@ def test_user_creation():
     result = win.validate_user_inputs(False)
 
     assert result == True
+
+
+def test_postcode_validation_passin_code_create():
+    """
+    test postcode validation. Call function from other location, non-existing code, return next id
+    """
+        
+    win = Reg_Window.__new__(Reg_Window)
+    Reg_Window.__init__(win, parent=None)
+
+    conn = uf.get_database_connection()
+    sql = "SELECT 'PST-' || printf('%03d',COALESCE((SELECT MAX(CAST(substr(postcode_id, 5) AS INTEGER)) FROM postcodes), 0) + 1)"
+    
+    postcode_id = conn.query(sql, ())
+    nxt_postcode_id = postcode_id[1][0][0]
+    
+    input_code = "000 000"
+    result = win.validate_postcode(input_code, False)
+
+    assert result == nxt_postcode_id
+
+
+def test_postcode_validation_passin_code_return_existing():
+    """
+    test postcode validation. Call function from other location, existing code, return that id
+    """
+        
+    win = Reg_Window.__new__(Reg_Window)
+    Reg_Window.__init__(win, parent=None)
+
+    conn = uf.get_database_connection()
+    sql = "SELECT postcode_id FROM postcodes WHERE postcode LIKE 'CB2 1TN';"
+
+    postcode_id = conn.query(sql, ())
+    ext_postcode_id = postcode_id[1][0][0]
+    
+    input_code = "CB2 1TN"
+    result = win.validate_postcode(input_code, False)
+
+    assert result == ext_postcode_id

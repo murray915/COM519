@@ -231,3 +231,112 @@ def is_nonnegative_whole_number(input_value) -> bool:
     
     except (TypeError, ValueError):
         return False
+
+def validate_postcode(input_postcode: str, create:bool) -> str:
+    """
+    Check if postcode input exists in db
+    If exist return id, if not create & return postcode_id
+    create default True, if testing, pass False        
+    """
+    try:
+        conn = None
+        output = "0"
+
+        postcode = input_postcode
+
+        # db connection & sql script get
+        conn = get_database_connection()
+        sql = load_sql_file("postcode_scripts.sql")
+        sql_statements = sql.replace("\n", "").split(";")
+
+        # enact sql scripts (3 total)
+        for i, sql in enumerate(sql_statements):
+
+            # get next id
+            if i == 0:
+                postcode_id = conn.query(sql, ())
+                postcode_id = postcode_id[1][0][0]
+
+            # check if user input postcode exist
+            if i == 1:
+                result = conn.query(sql, (postcode,))
+
+            # if no results create new record
+            if i == 2 and not result[1] and create:
+                conn.insert(sql, (postcode_id,postcode))
+        
+        if result[1]: 
+            output = result[1][0][0]
+        else:
+            output = postcode_id
+
+        # commit records (false=testing)
+        # close db connection
+        if create:
+            conn.commit()
+
+        conn.close()
+
+        return output
+
+    except Exception as err:
+        print(f"Unexpected error: {err}, type={type(err)}")
+        if conn:
+            conn.close()
+        else:
+            pass
+        return err
+    
+def validate_customer_account(user_id:str, create:bool):
+    """
+    Check if user_id has customer id in db, if not create
+    If exist return id, if not create & return postcode_id
+    create default True, if testing, pass False        
+    """
+    
+    try:
+        conn = None
+        output = "0"
+
+        # db connection & sql script get
+        conn = get_database_connection()
+        sql = load_sql_file("customer_scripts.sql")
+        sql_statements = sql.replace("\n", "").split(";")
+
+        # enact sql scripts (3 total)
+        for i, sql in enumerate(sql_statements):
+
+            # get next id
+            if i == 0:
+                customer_id = conn.query(sql, ())
+                customer_id = customer_id[1][0][0]             
+
+            # check if user input postcode exist
+            if i == 1:
+                result = conn.query(sql, (user_id,))
+
+            # if no results create new record
+            if i == 2 and not result[1] and create:
+                conn.insert(sql, (customer_id,user_id))
+        
+        if result[1]: 
+            output = result[1][0][0]
+        else:
+            output = customer_id
+
+        # commit records (false=testing)
+        # close db connection
+        if create:
+            conn.commit()
+
+        conn.close()
+
+        return output
+
+    except Exception as err:
+        print(f"Unexpected error: {err}, type={type(err)}")
+        if conn:
+            conn.close()
+        else:
+            pass
+        return err

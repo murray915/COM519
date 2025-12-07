@@ -1,13 +1,16 @@
 import pytest
 from .test_fixtures import *
 from tab_stock import *
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, Mock
 
 import os
 os.environ["TK_SILENCE_DEPRECATION"] = "1"
 
+@pytest.fixture
+def mock_controller():
+    return Mock()
 
-def test_create_new_item_missing_data():
+def test_create_new_item_missing_data(mock_controller):
     """
     test empty fields > false
     """
@@ -15,7 +18,7 @@ def test_create_new_item_missing_data():
     parent = None
     win = Tab3.__new__(Tab3)
 
-    Tab3.__init__(win, parent, curr_user)
+    Tab3.__init__(win, parent, mock_controller, curr_user, "TabFrame.TFrame")
     
 
     win.new_item_name.set("")
@@ -30,7 +33,7 @@ def test_create_new_item_missing_data():
         assert result is False
 
 
-def test_create_new_item_correct_data():
+def test_create_new_item_correct_data(mock_controller):
     """
     test completed fields > true
     """
@@ -38,7 +41,7 @@ def test_create_new_item_correct_data():
     parent = None
     win = Tab3.__new__(Tab3)
 
-    Tab3.__init__(win, parent, curr_user)    
+    Tab3.__init__(win, parent, mock_controller, curr_user, "TabFrame.TFrame")    
 
     win.new_item_name.set("TEST")
     win.new_item_des.set("sasfa  asfasvas")
@@ -50,24 +53,3 @@ def test_create_new_item_correct_data():
         assert result[0] is True
     else:
         assert result is True
-
-
-# def test_upload_image_failed_path():
-#     """
-#     test empty fields > true
-#     """
-#     curr_user = "USR-001"
-#     parent = None
-#     win = Tab3.__new__(Tab3)
-
-#     Tab3.__init__(win, parent, curr_user)    
-
-#     win.item_combobox_filetypes.set('png')
-#     win.image_item_id.set("ITM-016")
-    
-#     result = win.select_file()
-
-#     if type(result) == tuple:
-#         assert result[0] is False
-#     else:
-#         assert result is False

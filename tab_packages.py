@@ -8,11 +8,12 @@ from tkinter import filedialog
 from tkinter import ttk
 
 class Tab4(ttk.Frame):
-    def __init__(self, parent, curr_user, style_name):
+    def __init__(self, parent, controller, curr_user, style_name):
         super().__init__(parent, style=style_name)
 
         self.curr_user = curr_user
         self.tab_name = "Packages"
+        self.controller = controller
 
         self.package_id = '-'
         self.package_name = '-'
@@ -26,13 +27,20 @@ class Tab4(ttk.Frame):
         ttk.Label(self, text="This is the Item Management Tab" \
         "\n> To view packages please select the required package from the left frame, and press the 'get package data' button."
         "\n> To edit/create new packages, in the right frame, please select the package to edit (if this is required), then 'get package data'. " \
-        "\nThe tickbox will check automatically, to EDIT please keep ticked, to create a new record untick this box."    
-        "\n\n> Graph at the bottom of the window is the consumed packages over time"
+        "\n\tThe tickbox will check automatically, to EDIT please keep ticked, to create a new record untick this box."    
+        "\n> Graph at the bottom of the window is the consumed packages over time"
         ).pack(pady=20)
 
         # general params
         self.frame = tk.Frame(self)
         self.frame.pack()
+
+        # close app button
+        close_app_button = tk.Button(self.frame,
+                text="Close Application",
+                command=self.controller.close_application
+        )
+        close_app_button.grid(row=3, column=3)
 
         # frame 1 - Package Info
         # row 0, col 0
@@ -337,9 +345,7 @@ class Tab4(ttk.Frame):
                 self.package_id = dropdown_checker[0:7]                           
 
                 # check the edit box
-                state = self.check_var.get()
-                if not state:
-                    self.check_var.set(True)
+                self.check_var.set(True)
 
             # db connection & sql script get
             conn = uf.get_database_connection()
@@ -364,7 +370,6 @@ class Tab4(ttk.Frame):
                     self.description_entry.delete(0, tk.END)
                     self.items_consumed_entry.delete(0, tk.END)
                     self.activeflag_entry.delete(0, tk.END)
-                    self.check_var.set(False)
 
                     # if data found for search/item selector, update self data
                     if package_info[1]:
@@ -481,7 +486,6 @@ class Tab4(ttk.Frame):
         """
 
         try:
-
             # check for user inputs into all boxes
             # any missing values error to user
             if any(not var for var in variable_list):
@@ -495,7 +499,7 @@ class Tab4(ttk.Frame):
 
             # check only string data input, i.e. 123 not accepted
             if type(items_consumed) != str:                
-                messagebox.showerror("Show Error",'Input datat is a number, required is "N/A" or "ITM-001,ITM002..." etc or for single item "ITM-001"')
+                messagebox.showerror("Show Error",'Input data is a number, required is "N/A" or "ITM-001,ITM002..." etc or for single item "ITM-001"')
                 raise ValueError("Input incorrect, not a string or 'N/A'")
 
             # check item consumed input to match ITM-*** or "N/A"
