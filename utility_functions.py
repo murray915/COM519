@@ -287,6 +287,48 @@ def validate_postcode(input_postcode: str, create:bool) -> str:
             pass
         return err
     
+def get_postcode(postcode_id:str) -> tuple[bool, str | None]:
+    """"
+    get postcode string, from postcode_id
+    
+    """
+    try:
+        conn = None
+        output = "0"
+
+        # db connection & sql script get
+        conn = get_database_connection()
+        sql = load_sql_file("postcode_scripts.sql")
+        sql_statements = sql.replace("\n", "").split(";")
+
+        # enact sql scripts (3 total)
+        for i, sql in enumerate(sql_statements):
+
+            # get postcode from id
+            if i == 3:
+                postcode = conn.query(sql, (postcode_id,))
+
+        # check for valid output
+        if postcode[1][0]: 
+            output = postcode[1][0][0]
+        else:
+            raise ValueError("Nothing found")
+
+        # commit records (false=testing)
+        conn.close(False)
+
+        return True, output
+
+    except Exception as err:
+        print(f"Unexpected error: {err}, type={type(err)}")
+        if conn:
+            conn.close()
+        else:
+            pass
+
+        return False, None
+
+
 def validate_customer_account(user_id:str, create:bool):
     """
     Check if user_id has customer id in db, if not create

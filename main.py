@@ -6,10 +6,25 @@ import image_functions as ifc
 import csv
 
 
+# TODO: admin tab
+    # = create
+    # - password updates
+    # - access code update
+    # - xml import/export
+    # - application settings
 
-# TODO: fix phone number insert/recovery
+# TODO: account tab
+    # - create
+    # - add membership add to account tab
 
+# TODO: Booking tab
+    # - create
+    # - add new booking
+    # - amend / cancel existing booking
+    # - add finance SQL view & window
 
+# TODO: xml
+# TODO: triggers
 
 if __name__ == "__main__":
     
@@ -26,22 +41,9 @@ if __name__ == "__main__":
     hello = True
 
     if hello:        
-        test_login = ["USR-001","CUS_USR"]
+        test_login = ["USR-005","CUS_USR"]
         main_win = mw.Main(test_login[0],test_login[1])
         result = main_win.run()
 
     else: 
         pass
-
-
-        # conn = uf.get_database_connection()
-        # sql = uf.load_sql_file("customer_scripts.sql")
-        # sql_statements = sql.replace("\n", "").split(";")
-
-        # for i, sql in enumerate(sql_statements):
-
-        #     if i == 0:
-        #         veh_id = conn.query(sql, ())
-        #         next_veh_id = veh_id[1][0][0]
-                
-        # conn.close()

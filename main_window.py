@@ -9,6 +9,7 @@ from tab_book_appointments import Tab2
 from tab_stock import Tab3
 from tab_packages import Tab4
 from tab_account import Tab5
+from tab_garage import Tab6
 
 class Main(tk.Tk):
     def __init__(self, curr_user, access_code):
@@ -52,18 +53,20 @@ class Main(tk.Tk):
         self.notebook.pack(expand=True, fill="both")
 
         # Tabs
-        self.tab1 = Tab1(self.notebook, self, self.curr_user, "TabFrame.TFrame")
-        self.tab2 = Tab2(self.notebook, self, self.curr_user, "TabFrame.TFrame")
-        self.tab3 = Tab3(self.notebook, self, self.curr_user, "TabFrame.TFrame")
-        self.tab4 = Tab4(self.notebook, self, self.curr_user, "TabFrame.TFrame")
-        self.tab5 = Tab5(self.notebook, self, self.curr_user, "TabFrame.TFrame")
+        self.tab1 = Tab1(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_homepage = Tab1
+        self.tab2 = Tab2(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_book_appointments = Tab2
+        self.tab3 = Tab3(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_stock = Tab3
+        self.tab4 = Tab4(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_packages = Tab4
+        self.tab6 = Tab6(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_garage = Tab6
+        self.tab5 = Tab5(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_account = Tab5
 
         # Add to Notebook
-        self.notebook.add(self.tab1, text=self.tab1.tab_name)
-        self.notebook.add(self.tab2, text=self.tab2.tab_name)
-        self.notebook.add(self.tab3, text=self.tab3.tab_name)
-        self.notebook.add(self.tab4, text=self.tab4.tab_name)
-        self.notebook.add(self.tab5, text=self.tab5.tab_name)
+        self.notebook.add(self.tab1, text=self.tab1.tab_name) # tab_homepage = Tab1
+        self.notebook.add(self.tab2, text=self.tab2.tab_name) # tab_book_appointments = Tab2
+        self.notebook.add(self.tab3, text=self.tab3.tab_name) # tab_stock = Tab3
+        self.notebook.add(self.tab4, text=self.tab4.tab_name) # tab_packages = Tab4
+        self.notebook.add(self.tab6, text=self.tab6.tab_name) # tab_garage = Tab6
+        self.notebook.add(self.tab5, text=self.tab5.tab_name) # tab_account = Tab5
 
         # Track last selected tab index
         self.last_tab = 0
@@ -106,7 +109,7 @@ class Main(tk.Tk):
         # Prompt user
         answer = messagebox.askyesno(
             "Switch Tabs?",
-            f"Are you sure you want to switch to Tab {new_tab + 1}?"
+            f"Are you sure you want to switch to Tab?"
         )
 
         if not answer:

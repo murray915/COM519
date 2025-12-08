@@ -3,6 +3,9 @@ import icecream as ic
 import utility_functions as uf
 import image_functions as ifc
 import registration_window as rg
+from PIL import Image, ImageTk
+from cryptography.fernet import Fernet
+from tkinter import PhotoImage, messagebox
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter import ttk
@@ -33,6 +36,19 @@ class Tab5(ttk.Frame):
         self.veh_active_flag = '-'
         self.veh_list = '-'
 
+        self.membership_id = '-'
+        self.customer_id = '-'
+        self.subscrip_dat = '-'
+        self.payment_method = "Card"
+        self.iban = '-'
+
+        self.username = '-'
+        self.image = None
+
+        #encryption
+        self.f_key = None
+        self.get_key()
+
         self.customer_ref = uf.validate_customer_account(self.curr_user, False)
 
         ttk.Label(self, text="This is the Account Management Tab" \
@@ -41,8 +57,9 @@ class Tab5(ttk.Frame):
         "\n> To deactivate your account completely. Please tick the deactivation box, and input username and password. This will complete the process and close the application & deactivate your account. To reactivate, please untick the box when updating" \
         
         "\n\n> To add a new vehicle to your account, please within the 'Vehicle Information' window, add the details to the 4 boxes and press the 'Update/Add vehicle' button." \
-        "\n> To update a vehicle, please select one vehicle from the dropdown box, update respective fields, and press'Update/Add vehicle' button. To deactivate a vehicle, check box to deactivate and press 'update my vehicle list', to reactivate, when updating untick the box."
-        "\n\n> To add a membership, please ..."
+        "\n> To update a vehicle, please select one vehicle from the dropdown box, update respective fields, and press'Update/Add vehicle' button. To deactivate a vehicle, check box to deactivate and press 'update my vehicle list', to reactivate, when updating untick the box." \
+        "\n\n>To create a membership, input Card/Iban/day for payment then press 'Create/Update Details'. Update data displayed and press the 'Create/Update Details', to deactivate press the 'Deactivate my membership'" \
+        "\n> To edit update data displayed and press the 'Create/Update Details', to deactivate press the 'Deactivate my membership'"
         ).pack(pady=20)
 
         # general params
@@ -53,13 +70,21 @@ class Tab5(ttk.Frame):
         # row 0, col 0
         self.account_info_frame = self.frame_1()
 
-        # frame 2 - Item Creation
-        # row 0, col 5
+        # frame 2 - Vehicle Details (Edit/Add)
+        # row 1, col 0
         self.account_vehicle_frame = self.frame_2()
 
-        # frame 3 - Item Image Upload
-        # row 1, col 5
-        #self.item_comsumption_graph_frame = self.frame_3()
+        # frame 3 - Password Reset
+        # row 1, col 4
+        self.password_reset_frame = self.frame_3()
+
+        # frame 4 - Image
+        # row 0, col 4
+        self.image_frame = self.frame_4()
+
+        # frame 5 - Membership
+        # row 0, col 4
+        self.membership_frame = self.frame_5()
 
 
         # close app button
@@ -68,7 +93,6 @@ class Tab5(ttk.Frame):
                 command=self.controller.close_application
         )
         close_app_button.grid(row=3, column=3)
-
 
     def frame_1(self) -> object:
         """
@@ -116,8 +140,6 @@ class Tab5(ttk.Frame):
         update_user_data = tk.Button(account_info_frame,text='Update User Data',command=lambda: self.get_user_info(True))
         update_user_data.grid(row=1, column=4)
         
-        self.get_user_info(False)
-
         # format frame widgets
         for widget in account_info_frame.winfo_children():
             widget.grid_configure(padx=10, pady=5)
@@ -187,7 +209,292 @@ class Tab5(ttk.Frame):
             widget.grid_configure(padx=10, pady=5)
 
         return account_vehicle_frame
+   
+    def frame_3(self):
+        """
+        constructor for frame 3 : password_reset_frame
+        """
 
+        password_reset_frame = tk.LabelFrame(self.frame, text="Password Reset")
+        password_reset_frame.grid(row=1, column=3, padx=5, pady=5, sticky="nw")
+ 
+        # Labels
+        tk.Label(password_reset_frame, text="Please input Username, current password and new password (and re-enter) to update password").grid(row=0, column=0)
+
+        self.username_var = tk.StringVar(value=self.username)
+        tk.Label(password_reset_frame, text="username").grid(row=1, column=0)
+        tk.Label(password_reset_frame, textvariable=self.username_var).grid(row=1, column=1)
+
+        self.curr_pass_var = tk.StringVar()
+        tk.Label(password_reset_frame, text="Current Password").grid(row=2, column=0)
+        self.curr_pass_var_entry = tk.Entry(password_reset_frame, textvariable=self.curr_pass_var, show='*', width=40)
+        self.curr_pass_var_entry.grid(row=2, column=1, columnspan=2, sticky="we")
+
+        self.new_pass_1_var = tk.StringVar()
+        tk.Label(password_reset_frame, text="New Password").grid(row=3, column=0)
+        self.new_pass_1_entry = tk.Entry(password_reset_frame, textvariable=self.new_pass_1_var, show='*', width=40)
+        self.new_pass_1_entry.grid(row=3, column=1, columnspan=2, sticky="we")
+
+        self.new_pass_2_var = tk.StringVar()
+        tk.Label(password_reset_frame, text="New Password (Re-enter)").grid(row=4, column=0)
+        self.new_pass_2_entry = tk.Entry(password_reset_frame, textvariable=self.new_pass_2_var, show='*', width=40)
+        self.new_pass_2_entry.grid(row=4, column=1, columnspan=2, sticky="we")
+
+        # entrys / combobox
+        update_veh_data = tk.Button(password_reset_frame,text='Update Password',command=self.user_password_updater)
+        update_veh_data.grid(row=6, column=1)
+
+        # format frame widgets
+        for widget in password_reset_frame.winfo_children():
+            widget.grid_configure(padx=10, pady=5)
+
+        return password_reset_frame
+
+    def frame_4(self):
+
+        image_frame = tk.LabelFrame(self.frame, text=" - ")
+        image_frame.grid(row=0, column=3, padx=5, pady=5, sticky="nw")
+ 
+        # background image
+        img = Image.open("./images/User_Icon.png")
+        img = img.resize((120, 120))
+        self.image = ImageTk.PhotoImage(img)
+
+        #self.image = PhotoImage(file="./images/User_Icon.png")
+        tk.Label(image_frame, image=self.image).grid(row=0, column=3, rowspan=3, padx=10, pady=10)
+
+    def frame_5(self):
+        """
+        constructor for frame 5 : membership_frame
+        """
+
+        membership_frame = tk.LabelFrame(self.frame, text="Membership Information")
+        membership_frame.grid(row=2, column=1, padx=5, pady=5, sticky="nw")
+ 
+        # Labels
+        self.membership_id_var = tk.StringVar(value=self.membership_id)
+        tk.Label(membership_frame, text="Membership ID").grid(row=0, column=0)
+        tk.Label(membership_frame, textvariable=self.membership_id_var).grid(row=0, column=1)
+
+        self.customer_id_var = tk.StringVar(value=self.customer_id)
+        tk.Label(membership_frame, text="Customer ID").grid(row=1, column=0)
+        tk.Label(membership_frame, textvariable=self.customer_id_var).grid(row=1, column=1)
+
+        self.subscrip_dat_var = tk.StringVar()
+        tk.Label(membership_frame, text="Subscription Payment Day (input 1-25th to denote the day)").grid(row=2, column=0)
+        self.subscrip_dat_entry = tk.Entry(membership_frame, textvariable=self.subscrip_dat_var, width=40)
+        self.subscrip_dat_entry.grid(row=2, column=1, columnspan=2, sticky="we")
+
+        self.payment_method_var = tk.StringVar(value=self.payment_method)
+        tk.Label(membership_frame, text="Payment Method").grid(row=3, column=0)
+        tk.Label(membership_frame, textvariable=self.payment_method_var).grid(row=3, column=1)
+
+        self.iban_var = tk.StringVar()
+        tk.Label(membership_frame, text="Iban").grid(row=4, column=0)
+        self.iban_entry = tk.Entry(membership_frame, textvariable=self.iban_var, width=40)
+        self.iban_entry.grid(row=4, column=1, columnspan=2, sticky="we")
+
+        # entrys / combobox
+        update_veh_data = tk.Button(membership_frame,text='Create/Update Details',command=self.user_password_updater)
+        update_veh_data.grid(row=0, column=2)
+
+        update_veh_data = tk.Button(membership_frame,text='Deactivate my membership',command=self.user_password_updater)
+        update_veh_data.grid(row=1, column=2)
+
+        self.get_user_info(False)
+
+        # format frame widgets
+        for widget in membership_frame.winfo_children():
+            widget.grid_configure(padx=10, pady=5)
+
+        return membership_frame
+
+    def get_membership_info(self) -> tuple[bool, str | None]:
+        """
+        get_membership_info from existing params. Update and create where button input
+
+        :param self: self, pulled on setup & update details, update trigger from button pressed by user to update details
+        :return: True is successful, or false and errorstring
+        :rtype: tuple[bool, str | None]
+        """
+
+        try:
+            conn = None
+
+            # db connection & sql script get
+            conn = uf.get_database_connection()
+            sql = uf.load_sql_file("user_scripts.sql")
+            sql_statements = sql.replace("\n", "").split(";")
+
+            # enact sql scripts
+            for i, sql in enumerate(sql_statements):
+
+                # get next id
+                if i == 0:
+                    cus_id = conn.query(sql, ())
+                    cus_id = cus_id[1][0][0]
+
+                # get vehicle info data
+                if i == 2 and dropdown_checker != '':
+                    veh_info = conn.query(sql, (self.customer_veh_id,))
+                
+                    # remove existing data
+                    self.customer_veh_id_var.set('-')
+                    self.car_reg_entry.delete(0, tk.END)
+                    self.car_make_entry.delete(0, tk.END)
+                    self.car_model_entry.delete(0, tk.END)
+                    self.mot_status_entry.delete(0, tk.END)
+                    self.active_flag_var.set('-')
+
+                    # if data found for search/item selector, update self data
+                    if veh_info[1]:
+                        rows = veh_info[1]
+
+                        if rows:
+                            (
+                                veh_id,
+                                cus_id,
+                                car_reg,
+                                car_make,
+                                car_model,
+                                mot_status,
+                                active_flag
+                            ) = rows[0]
+
+                            # add details to entry & save others to var
+
+                            self.customer_veh_id_var.set(veh_id)
+                            self.car_reg_entry.insert(0, car_reg)
+                            self.car_make_entry.insert(0, car_make)
+                            self.car_model_entry.insert(0, car_model)
+                            self.mot_status_entry.insert(0, mot_status)
+
+                        # convert bool to text value & update checkbox
+                        if active_flag == 1:
+                            self.active_flag_veh_var.set("Active")
+                            self.checK_veh_var.set(False)
+                        elif active_flag == 0:
+                            self.active_flag_veh_var.set("Inactive")
+                            self.checK_veh_var.set(True)
+
+
+            # commit & close
+            conn.close(True)   
+
+            # update backing data
+            self.get_user_info()
+
+            return True
+
+        except Exception as err:
+            print(f"Unexpected error: {err}, type={type(err)}")
+            if conn:
+                conn.close()
+            else:
+                pass
+
+            return False, str(err)
+
+    def user_password_updater(self) -> tuple[bool, str | None]:
+        """
+        check user inputs for username & curr/new passwords
+        If successful, update db entree
+        """
+
+        try:
+            conn = None
+            output_msg = []
+
+            data_list = [   
+                ["username", str(self.username)],
+                ["Curr_Password", str(self.curr_pass_var_entry.get().strip())],
+                ["Password_1", str(self.new_pass_1_entry.get().strip())],
+                ["Password_2", str(self.new_pass_2_entry.get().strip())]
+            ]
+
+            # check user inputs
+            result = self.check_user_inputs_password(data_list)
+            
+            # if no error found, pass
+            if result:
+                messagebox.showerror("Validation Error", "\n".join(result))
+                raise ValueError("Missing data within inputs")
+
+            update_user_params = [
+                str(self.curr_user),
+                str(self.username),
+                self.encryption(str(self.new_pass_1_entry.get().strip()),True),
+                str(self.curr_user )            
+            ]
+
+            # db connection & sql script get
+            conn = uf.get_database_connection()
+            sql = uf.load_sql_file("user_data_create.sql")
+            sql_statements = sql.replace("\n", "").split(";")
+
+            # enact sql scripts
+            for i, sql in enumerate(sql_statements):
+
+                # update user password
+                if i == 4:
+                    conn.update(sql, update_user_params)
+        
+            # commit & close
+            conn.close(True)      
+
+            return True
+
+        except Exception as err:
+            print(f"Unexpected error: {err}, type={type(err)}")
+            if conn:
+                conn.close()
+            else:
+                pass
+
+            return False, str(err)
+
+    def check_user_inputs_password(self, data_list) -> list:
+        """
+        check user inputs. List passed with username, curr_pass, new_pass 1 & 2
+        Return output list of errors OR blank list
+        """
+
+        output_msg = []
+
+        # check if data input str
+        for i, data in enumerate(data_list):                
+            if len(data[1]) == 0:
+                output_msg.append(f'{data[0]}: Is missing input values')
+
+        # check if password meets rules
+        for i in data_list[2:3]:
+
+            print(i[1])
+
+            # char param to cross check
+            special_characters = "!@#$%^&*()-+?_=,<>/"
+
+            # length check
+            if len(i[1]) < 12:
+                output_msg.append(f"{i[0]} : Password must be at least 12 characters")
+
+            # captilisation check
+            if not any(c.isupper() for c in i[1]):
+                output_msg.append(f"{i[0]} : Password must contain a capital letter")
+
+            # check if number is present
+            if not any(c.isdigit() for c in i[1]):
+                output_msg.append(f"{i[0]} : Password must contain a number")
+
+            # check if special char is present
+            if not any(c in special_characters for c in i[1]):
+                output_msg.append(f"{i[0]} : Password must contain a special character")
+
+        # check if pass 1 / 2 match
+        if str(data_list[2][1]) != str(data_list[3][1]):
+            output_msg.append("New passwords must match")
+
+        return output_msg
 
     def get_veh_info(self, update:bool, create: bool) -> tuple[bool, str | None]:
         """
@@ -320,8 +627,6 @@ class Tab5(ttk.Frame):
                     self.mot_status_entry.delete(0, tk.END)
                     self.active_flag_veh_var.set('-')
                     self.checK_veh_var.set(False)
-                  
-
 
             # commit & close
             conn.close(True)   
@@ -339,7 +644,6 @@ class Tab5(ttk.Frame):
                 pass
 
             return False, str(err)
-
 
     def update_dropdown(self) -> tuple[bool, str | None]:
         """
@@ -393,7 +697,6 @@ class Tab5(ttk.Frame):
 
             return False, str(err)
 
-
     def get_user_info(self, update: bool) -> tuple[bool, str | None]:
         """
         get_user_info from curr_user passed into class
@@ -440,7 +743,13 @@ class Tab5(ttk.Frame):
                                 phoneno,
                                 prime_gar,
                                 access_code,
-                                active_flag
+                                active_flag,
+                                username,
+                                membership_id,
+                                customer_id,
+                                subscrip_pay_day,
+                                payment_method,
+                                iban
                             ) = rows[0]
 
                             # add details to entry & save others to var
@@ -453,6 +762,22 @@ class Tab5(ttk.Frame):
                             self.access_code_var.set(access_code)
                             self.active_flag_var.set(active_flag)
 
+                            # set user param for utilisation in other frames
+                            self.username = username
+                            
+                            # add all user membership data
+                            self.membership_id = membership_id
+                            self.customer_id = customer_id
+                            self.subscrip_dat = subscrip_pay_day
+                            self.payment_method = "Card"
+                            self.iban = iban
+
+                            self.membership_id_var.set(membership_id)
+                            self.customer_id_var.set(customer_id)
+                            self.subscrip_dat_entry.insert(0, subscrip_pay_day)
+                            self.payment_method_var.set(payment_method)   
+                            self.iban_entry.insert(0, iban)  
+                            
                         # convert bool to text value
                         if active_flag == 1:
                             self.access_code_var.set("Active")
@@ -498,7 +823,6 @@ class Tab5(ttk.Frame):
                 pass
 
             return False, str(err)
-        
 
     def check_user_inputs(self) -> tuple[bool, str | None]:
         """
@@ -549,3 +873,26 @@ class Tab5(ttk.Frame):
         self.mot_status_entry.delete(0, tk.END)
         self.active_flag_veh_var.set('-')
         self.checK_veh_var.set(False)
+
+    def get_key(self):
+        """ 
+        get encryption key & store within obj
+        """
+        key_str = uf.get_encrypt_key()
+
+        self.key = key_str.encode()
+        self.f_key = Fernet(self.key)
+
+    def encryption(self, input_data: str, encypt: bool) -> str:
+        """
+        input string to be encypted/decrypted
+        encypt = True for  encypt, False = Decrypt
+        key from store
+        """
+        if not self.f_key:
+            raise ValueError("Fernet key not initialized")
+        
+        if encypt:
+            return self.f_key.encrypt(input_data.encode()).decode()
+        else:
+            return self.f_key.decrypt(input_data.encode()).decode()

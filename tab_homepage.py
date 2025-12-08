@@ -106,14 +106,12 @@ class Tab1(ttk.Frame):
         txt.insert("1.0", table_text)
         txt.config(state="disabled")
 
-
     def get_user_info(self):
         """
         get booking data (prev/upcoming) and cardata
         update respective self. per
         """
         pass
-
 
     def get_table_data(self) -> tuple[bool, str | None]:
         """

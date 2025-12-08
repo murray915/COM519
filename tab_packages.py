@@ -24,7 +24,7 @@ class Tab4(ttk.Frame):
 
         self.check_var = None
 
-        ttk.Label(self, text="This is the Item Management Tab" \
+        ttk.Label(self, text="This is the Package Management Tab" \
         "\n> To view packages please select the required package from the left frame, and press the 'get package data' button."
         "\n> To edit/create new packages, in the right frame, please select the package to edit (if this is required), then 'get package data'. " \
         "\n\tThe tickbox will check automatically, to EDIT please keep ticked, to create a new record untick this box."    
@@ -105,7 +105,6 @@ class Tab4(ttk.Frame):
             widget.grid_configure(padx=10, pady=5)
 
         return package_info_frame
-    
 
     def frame_2(self) -> object:
         """
@@ -147,7 +146,6 @@ class Tab4(ttk.Frame):
                 pass
 
             return False, str(err)
-    
 
     def frame_3(self) -> object:
         """
@@ -211,7 +209,6 @@ class Tab4(ttk.Frame):
             widget.grid_configure(padx=10, pady=5)
 
         return package_edit_create_frame
-
 
     def get_package_info(self) -> tuple[bool, str | None]:
         """
@@ -326,7 +323,6 @@ class Tab4(ttk.Frame):
                 pass
 
             return False, str(err)
-        
 
     def get_package_edit_create(self, action=False) -> tuple[bool, str | None]:
         """
@@ -478,7 +474,6 @@ class Tab4(ttk.Frame):
 
             return False, str(err)
         
-        
     def check_user_inputs(self, variable_list: list, active_flag: str, items_consumed: str) -> tuple[bool, str | None]:
         """
         check user inputs for the create/edit boxes within frame 3 
@@ -515,7 +510,6 @@ class Tab4(ttk.Frame):
         except Exception as err:
             print(f"Unexpected error: {err}, type={type(err)}")
             return False, str(err)
-
 
     def validate_itm_list(self, text: str) -> bool:
         """

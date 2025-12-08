@@ -103,7 +103,7 @@ class Reg_Window(tk.Toplevel):
         # entrys
         self.username_entry = tk.Entry(login_details_frame, textvariable=self.username)
         self.username_entry.grid(row=1, column=1)
-        self.password_entry = tk.Entry(login_details_frame, textvariable=self.password)
+        self.password_entry = tk.Entry(login_details_frame, textvariable=self.password, show='*')
         self.password_entry.grid(row=1, column=2)
 
         # format frame widgets
@@ -241,9 +241,9 @@ class Reg_Window(tk.Toplevel):
             output_msg = []
 
             data_list = [   
-                ["username", self.username.get().strip()],
-                ["Password", self.password.get().strip()] 
-            ]
+                ["username", str(self.username.get().strip())],
+                ["Password", str(self.password.get().strip())]
+                ]
 
             # check if data input str
             for i, data in enumerate(data_list):                
@@ -252,7 +252,7 @@ class Reg_Window(tk.Toplevel):
 
             # check if username is avalible
             if len(output_msg) == 0:
-                input_username = self.username.get().strip()
+                input_username = str(self.username.get().strip())
 
                 # db connection
                 conn = uf.get_database_connection()
@@ -335,7 +335,7 @@ class Reg_Window(tk.Toplevel):
                 ]
 
                 login_params = [
-                    self.username.get().strip(),
+                    str(self.username.get().strip()),
                     self.encryption(str(self.password.get()),True)               
                 ]
 
@@ -345,8 +345,6 @@ class Reg_Window(tk.Toplevel):
                 conn = uf.get_database_connection()
                 sql = uf.load_sql_file("user_data_create.sql")
                 sql_statements = sql.replace("\n", "").split(";")
-
-                ic(sql_statements)
 
                 # enact sql scripts (3 total)
                 for i, sql in enumerate(sql_statements):

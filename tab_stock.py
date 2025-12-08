@@ -129,7 +129,6 @@ class Tab3(ttk.Frame):
 
         return item_info_frame
 
-
     def frame_2(self) -> object:
         """
         constructor for frame 2 : item_creatiom_frame
@@ -177,7 +176,6 @@ class Tab3(ttk.Frame):
             widget.grid_configure(padx=10, pady=5)
 
         return item_creation_frame
-    
 
     def frame_3(self) -> tuple[object, str | None]:
         """
@@ -218,7 +216,6 @@ class Tab3(ttk.Frame):
                 pass
 
             return False, str(err)
-    
 
     def frame_4(self) -> tuple[object, str | None]:
         """
@@ -291,8 +288,6 @@ class Tab3(ttk.Frame):
                 pass
 
             return False, str(err)
-    
-       
         
     def get_stock_item_info(self) -> tuple[bool, str | None]:
         """
@@ -403,7 +398,6 @@ class Tab3(ttk.Frame):
                 pass
 
             return False, str(err)
-
 
     def get_stock_garage_info(self) -> tuple[bool, str | None]:
         """
@@ -539,7 +533,6 @@ class Tab3(ttk.Frame):
 
             return False, str(err)
 
-
     def create_new_item(self, create=True) -> tuple[bool, str | None]:
         """
         create new item, get data from userinput frame_2
@@ -635,7 +628,6 @@ class Tab3(ttk.Frame):
                 pass
             
             return False, err
-
 
     def select_file(self) -> tuple[bool, str | None]:
         """"
