@@ -10,6 +10,7 @@ from tab_stock import Tab3
 from tab_packages import Tab4
 from tab_account import Tab5
 from tab_garage import Tab6
+from tab_admin import Tab7
 
 class Main(tk.Tk):
     def __init__(self, curr_user, access_code):
@@ -59,6 +60,7 @@ class Main(tk.Tk):
         self.tab4 = Tab4(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_packages = Tab4
         self.tab6 = Tab6(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_garage = Tab6
         self.tab5 = Tab5(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_account = Tab5
+        self.tab7 = Tab7(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_admin = Tab7
 
         # Add to Notebook
         self.notebook.add(self.tab1, text=self.tab1.tab_name) # tab_homepage = Tab1
@@ -67,6 +69,7 @@ class Main(tk.Tk):
         self.notebook.add(self.tab4, text=self.tab4.tab_name) # tab_packages = Tab4
         self.notebook.add(self.tab6, text=self.tab6.tab_name) # tab_garage = Tab6
         self.notebook.add(self.tab5, text=self.tab5.tab_name) # tab_account = Tab5
+        self.notebook.add(self.tab7, text=self.tab7.tab_name) # tab_admin = Tab7
 
         # Track last selected tab index
         self.last_tab = 0

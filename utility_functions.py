@@ -381,4 +381,4 @@ def validate_customer_account(user_id:str, create:bool):
             conn.close()
         else:
             pass
-        return err
+        return err    

@@ -86,6 +86,8 @@ class Tab5(ttk.Frame):
         # row 0, col 4
         self.membership_frame = self.frame_5()
 
+        # get data for frames
+        result = self.get_user_info(False)
 
         # close app button
         close_app_button = tk.Button(self.frame,
@@ -295,13 +297,11 @@ class Tab5(ttk.Frame):
         self.iban_entry.grid(row=4, column=1, columnspan=2, sticky="we")
 
         # entrys / combobox
-        update_veh_data = tk.Button(membership_frame,text='Create/Update Details',command=self.user_password_updater)
+        update_veh_data = tk.Button(membership_frame,text='Create/Update Details',command=lambda: self.get_membership_info(True, False))
         update_veh_data.grid(row=0, column=2)
 
-        update_veh_data = tk.Button(membership_frame,text='Deactivate my membership',command=self.user_password_updater)
+        update_veh_data = tk.Button(membership_frame,text='Deactivate my membership',command=lambda: self.get_membership_info(False, True))
         update_veh_data.grid(row=1, column=2)
-
-        self.get_user_info(False)
 
         # format frame widgets
         for widget in membership_frame.winfo_children():
@@ -309,21 +309,31 @@ class Tab5(ttk.Frame):
 
         return membership_frame
 
-    def get_membership_info(self) -> tuple[bool, str | None]:
+    def get_membership_info(self, action:bool, delete: bool) -> tuple[bool, str | None]:
         """
         get_membership_info from existing params. Update and create where button input
 
-        :param self: self, pulled on setup & update details, update trigger from button pressed by user to update details
+        :param self: self, pulled on setup & update details, update trigger from button pressed by user to update details. delete trigger from button to deactivate membership
         :return: True is successful, or false and errorstring
         :rtype: tuple[bool, str | None]
         """
 
         try:
+            # var setups
             conn = None
+            create = False
+            update = False
+
+            # confirm if update/create
+            member_id = self.membership_id_var.get()
+            if action and member_id != 'None':
+                update = True
+            if action and member_id == 'None':
+                create = True
 
             # db connection & sql script get
             conn = uf.get_database_connection()
-            sql = uf.load_sql_file("user_scripts.sql")
+            sql = uf.load_sql_file("membership_scripts.sql")
             sql_statements = sql.replace("\n", "").split(";")
 
             # enact sql scripts
@@ -331,58 +341,83 @@ class Tab5(ttk.Frame):
 
                 # get next id
                 if i == 0:
-                    cus_id = conn.query(sql, ())
-                    cus_id = cus_id[1][0][0]
+                    next_mem_id = conn.query(sql, ())
+                    next_mem_id = next_mem_id[1][0][0]
 
-                # get vehicle info data
-                if i == 2 and dropdown_checker != '':
-                    veh_info = conn.query(sql, (self.customer_veh_id,))
-                
-                    # remove existing data
-                    self.customer_veh_id_var.set('-')
-                    self.car_reg_entry.delete(0, tk.END)
-                    self.car_make_entry.delete(0, tk.END)
-                    self.car_model_entry.delete(0, tk.END)
-                    self.mot_status_entry.delete(0, tk.END)
-                    self.active_flag_var.set('-')
+                # get account data, check inputs
+                # update if required
+                if i == 1 and action:
 
-                    # if data found for search/item selector, update self data
-                    if veh_info[1]:
-                        rows = veh_info[1]
+                    # get and validate data
+                    membership_id = self.membership_id
+                    if membership_id is None:
+                        membership_id = "Nothing"
 
-                        if rows:
-                            (
-                                veh_id,
-                                cus_id,
-                                car_reg,
-                                car_make,
-                                car_model,
-                                mot_status,
-                                active_flag
-                            ) = rows[0]
+                    customer_id = self.customer_id
+                    if customer_id is None:
+                        customer_id = "Nothing"
 
-                            # add details to entry & save others to var
+                    subscrip_pay_day = self.subscrip_dat_entry.get()
+                    pay_method = "Card"
+                    iban = self.iban_entry.get()
 
-                            self.customer_veh_id_var.set(veh_id)
-                            self.car_reg_entry.insert(0, car_reg)
-                            self.car_make_entry.insert(0, car_make)
-                            self.car_model_entry.insert(0, car_model)
-                            self.mot_status_entry.insert(0, mot_status)
+                    var_list = [
+                        customer_id,
+                        str(subscrip_pay_day),
+                        pay_method,
+                        str(iban),
+                        membership_id
+                    ]
 
-                        # convert bool to text value & update checkbox
-                        if active_flag == 1:
-                            self.active_flag_veh_var.set("Active")
-                            self.checK_veh_var.set(False)
-                        elif active_flag == 0:
-                            self.active_flag_veh_var.set("Inactive")
-                            self.checK_veh_var.set(True)
+                    # check for user inputs into all boxes
+                    # any missing values error to user
+                    if any(not var for var in var_list):
+                        messagebox.showerror("Show Error","Please ensure all boxes are populated. Only primary garage is not required, input 'N/A' for this.")
+                        raise ValueError("Missing data within inputs")
+                    
+                    if not subscrip_pay_day.isdigit() or not (1 <= int(subscrip_pay_day) <= 25):
+                        messagebox.showerror("Show Error","Please ensure Day input into pay day is a number between 1-25.")
+                        raise ValueError("Data input incorrect for day input, should be 1-25")
+                    
+                    # update record, otherwise create new
+                    if update:
+                        conn.update(sql, (var_list))
+
+                # create new membership data
+                if i == 2 and create:
+
+                    # update var list
+                    var_list.pop()
+                    
+                    # check if customer account exists
+                    # if not create
+                    if var_list[0] == "Nothing":
+                        cus_id = uf.validate_customer_account(self.curr_user, True)                
+                        var_list[0] = cus_id
+
+                    # add next mem_id
+                    var_list.insert(0, next_mem_id)
+
+                    # create mem account
+                    conn.insert(sql, (var_list))
+
+
+                # delete membership details
+                if i == 3 and delete:
+
+                    if member_id == "None":
+                        messagebox.showerror("Show Error","No membership to deactivate.")
+                        raise ValueError("No membership to deactivate")
+                    
+                    else:   
+                        conn.delete(sql, (member_id,))
 
 
             # commit & close
-            conn.close(True)   
+            conn.close(True)
 
             # update backing data
-            self.get_user_info()
+            self.get_user_info(False)
 
             return True
 
@@ -769,14 +804,27 @@ class Tab5(ttk.Frame):
                             self.membership_id = membership_id
                             self.customer_id = customer_id
                             self.subscrip_dat = subscrip_pay_day
+
+                            if subscrip_pay_day is None:
+                                subscrip_pay_day = '-'
+
                             self.payment_method = "Card"
                             self.iban = iban
+
+                            if iban is None:
+                                iban = '-'
+
+                            self.membership_id_var.set("-")
+                            self.customer_id_var.set("-")
+                            self.subscrip_dat_entry.delete(0, tk.END)
+                            self.payment_method_var.set("-")
+                            self.iban_entry.delete(0, tk.END)
 
                             self.membership_id_var.set(membership_id)
                             self.customer_id_var.set(customer_id)
                             self.subscrip_dat_entry.insert(0, subscrip_pay_day)
                             self.payment_method_var.set(payment_method)   
-                            self.iban_entry.insert(0, iban)  
+                            self.iban_entry.insert(0, iban)
                             
                         # convert bool to text value
                         if active_flag == 1:
@@ -808,7 +856,7 @@ class Tab5(ttk.Frame):
                         
                         conn.update(sql, (name, address, postcode_id, email, phoneno, prime_gar, self.curr_user))
 
-                        messagebox.showinfo("Show Info",f"Account Details updated")
+                        messagebox.showinfo("Show Info","Account Details updated")
 
             # commit & close
             conn.close(True)

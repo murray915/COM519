@@ -254,11 +254,17 @@ class Reg_Window(tk.Toplevel):
             if len(output_msg) == 0:
                 input_username = str(self.username.get().strip())
 
-                # db connection
+                # db connection & sql script get
                 conn = uf.get_database_connection()
+                sql = uf.load_sql_file("user_scripts.sql")
+                sql_statements = sql.replace("\n", "").split(";")
 
-                sql = uf.load_sql_file("user_data_get.sql")
-                result = conn.query(sql, (input_username,))
+                # enact sql scripts
+                for i, sql in enumerate(sql_statements):
+
+                    # get user info data
+                    if i == 3:
+                        result = conn.query(sql, (input_username,))
 
                 conn.close()
 

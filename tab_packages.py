@@ -54,6 +54,7 @@ class Tab4(ttk.Frame):
         # row 0, col 1
         self.item_info_frame = self.frame_3()
 
+        # get background data
         self.get_package_info()
 
     def frame_1(self) -> object:
@@ -240,7 +241,7 @@ class Tab4(ttk.Frame):
                     if all_package_data:
                         output_list = []
 
-                        # clean data intp list
+                        # clean data into list
                         for i in all_package_data[1]:
                             output_list.append(i[0])
                         

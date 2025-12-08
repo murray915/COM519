@@ -1,10 +1,5 @@
-from icecream import ic
-import login_window as lw
 import main_window as mw
 import utility_functions as uf
-import image_functions as ifc
-import csv
-
 
 # TODO: admin tab
     # = create
@@ -12,10 +7,6 @@ import csv
     # - access code update
     # - xml import/export
     # - application settings
-
-# TODO: account tab
-    # - create
-    # - add membership add to account tab
 
 # TODO: Booking tab
     # - create
@@ -25,6 +16,12 @@ import csv
 
 # TODO: xml
 # TODO: triggers
+
+
+##### IF I HAVE TIME #####
+# TODO:
+    # Add image to garage
+    # add image to account
 
 if __name__ == "__main__":
     
@@ -41,7 +38,7 @@ if __name__ == "__main__":
     hello = True
 
     if hello:        
-        test_login = ["USR-005","CUS_USR"]
+        test_login = ["USR-001","CUS_USR"]
         main_win = mw.Main(test_login[0],test_login[1])
         result = main_win.run()
 
