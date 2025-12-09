@@ -16,6 +16,7 @@ import utility_functions as uf
  
 # TODO:
     # Add image to garage
+    # Add stock limitations based on STAFF login & prim_garage
     # add image to account
     # - xml import (db table type checker)
     # - application settings
@@ -40,10 +41,4 @@ if __name__ == "__main__":
         result = main_win.run()
 
     else: 
-        
-        import xml_functions as xfc
-
-        filepath = "C:/Users/eliot/Downloads/access_codes.xml"
-        result = xfc.database_updater_from_xml(filepath)
-
-        print(result)
+        pass
