@@ -19,21 +19,15 @@ class Tab7(ttk.Frame):
         self.controller = controller
 
         self.account_list = '-'
+        self.access_code_list = '-'
         self.username = '-'
 
         #encryption
         self.f_key = None
         self.get_key()
 
-        ttk.Label(self, text="This is the Account Management Tab" \
-        "\n> To change account details, including password. Please update the required fields and press the 'Update my details' button." \
-        "\n> To update password, please input current password and then your new password (in both the first and second box), then 'Update my password', button." \
-        "\n> To deactivate your account completely. Please tick the deactivation box, and input username and password. This will complete the process and close the application & deactivate your account. To reactivate, please untick the box when updating" \
-        
-        "\n\n> To add a new vehicle to your account, please within the 'Vehicle Information' window, add the details to the 4 boxes and press the 'Update/Add vehicle' button." \
-        "\n> To update a vehicle, please select one vehicle from the dropdown box, update respective fields, and press'Update/Add vehicle' button. To deactivate a vehicle, check box to deactivate and press 'update my vehicle list', to reactivate, when updating untick the box." \
-        "\n\n>To create a membership, input Card/Iban/day for payment then press 'Create/Update Details'. Update data displayed and press the 'Create/Update Details', to deactivate press the 'Deactivate my membership'" \
-        "\n> To edit update data displayed and press the 'Create/Update Details', to deactivate press the 'Deactivate my membership'"
+        ttk.Label(self, text="This is the Admin Funct Tab" \
+        "\n> To change a users password or access code. Please select the account from the dropdown. Then input the new password/accesscode/activeflag. Active Flag has to be Active/Inactive, accesscode from respective lookup & password hit the rules."
         ).pack(pady=20)
 
         # general params
@@ -67,10 +61,9 @@ class Tab7(ttk.Frame):
         tk.Label(password_reseter_frame, text="Select account to reset username and/or password. Once selected and data udpated press the 'Update Details' button.").grid(row=0, column=0)
         tk.Label(password_reseter_frame, text="Dropdown List for Accounts :").grid(row=1, column=0)
 
-        self.username_var = tk.StringVar()
-        tk.Label(password_reseter_frame, text="Username").grid(row=2, column=0)
-        self.username_entry = tk.Entry(password_reseter_frame, textvariable=self.username_var, width=40)
-        self.username_entry.grid(row=2, column=1, columnspan=2, sticky="we")
+        self.username_var = tk.StringVar(value=self.username)
+        tk.Label(password_reseter_frame, text="username").grid(row=2, column=0)
+        tk.Label(password_reseter_frame, textvariable=self.username_var).grid(row=2, column=1)
 
         self.new_pass_var = tk.StringVar()
         tk.Label(password_reseter_frame, text="New Password").grid(row=3, column=0)
@@ -90,12 +83,18 @@ class Tab7(ttk.Frame):
         # entrys / combobox
         self.account_combobox = ttk.Combobox(password_reseter_frame, values=self.account_list)
         self.account_combobox.grid(row=1, column=1, columnspan=2, sticky="ew")
-        
+
         udpate_usr_account = tk.Button(password_reseter_frame,text='Get Account Details',command=lambda: self.user_updater_data(False))
         udpate_usr_account.grid(row=1, column=3)
 
-        udpate_usr_account = tk.Button(password_reseter_frame,text='Update Details',command=lambda: self.user_updater_data(True))
-        udpate_usr_account.grid(row=4, column=3)
+        update_usr_account = ttk.Button(password_reseter_frame,text='Update Details',command=lambda: self.user_updater_data(True))
+        update_usr_account.grid(row=8, column=3)
+
+        pw_requirement_details = tk.Button(password_reseter_frame,text='Password Requirements',command=self.pw_requirements_printout)
+        pw_requirement_details.grid(row=3, column=3)
+
+        accesscode_details = tk.Button(password_reseter_frame,text='Accesscode List',command=self.accesscode_printout)
+        accesscode_details.grid(row=4, column=3)
 
         # format frame widgets
         for widget in password_reseter_frame.winfo_children():
@@ -111,7 +110,10 @@ class Tab7(ttk.Frame):
         """
 
         try:
+            # env params
             conn = None
+            output_msg = []
+            pw_update = False
 
             # get the account details from search/selector
             dropdown_checker = self.account_combobox.get()
@@ -146,12 +148,13 @@ class Tab7(ttk.Frame):
                     self.account_combobox['values'] = self.account_list
                     self.account_combobox.set('')
 
-                # get package info from searcher dropdown                
+                # get account info from searcher dropdown                
                 if i == 5 and dropdown_checker != '':
 
                     # clean entrees
-                    self.username_entry.delete(0, tk.END)
+                    self.username_var.set('')
                     self.new_pass_entry.delete(0, tk.END)
+                    self.account_combobox.set('')
                     self.access_code_entry.delete(0, tk.END)
                     self.active_flag_entry.delete(0, tk.END)
 
@@ -172,14 +175,101 @@ class Tab7(ttk.Frame):
 
                         # update edit/creation frame if true
                         # default = false, and Package Info frame updated
-                        self.username_entry.insert(0,username)
+                        self.username_var.set(username)
                         self.new_pass_entry.insert(0,'')
                         self.access_code_entry.insert(0,access_code)
 
                         if active_flag == 1:
                             self.active_flag_entry.insert(0,"Active")
+                            self.curr_active_flag = "Active"
                         if active_flag == 0:
                             self.active_flag_entry.insert(0,"Inactive")
+                            self.curr_active_flag = "Inactive"
+
+                        self.curr_access_code = access_code
+
+                # get accesscode info               
+                if i == 6:
+                    all_accesscode_data = conn.query(sql, ())
+
+                    if all_accesscode_data:
+                        output_list = []
+
+                        # clean data into list
+                        for i in all_accesscode_data[1]:
+                            output_list.append(i[0])
+                        
+                        # add to self var
+                        self.access_code_list = output_list
+     
+                # update user account               
+                if i == 7 and update:
+
+                    # get input data
+                    edit_user_id = self.edit_user_id
+                    new_password = self.new_pass_entry.get().strip()
+                    accesscode = self.access_code_entry.get()
+                    activeflag = self.active_flag_entry.get()
+
+                    # check if new password has been input
+                    if new_password:
+                        pw_update = True
+                    
+                    var_list = [
+                        str(new_password),
+                        str(accesscode),
+                        str(activeflag)
+                    ]
+
+                    # check if inputs are ok
+                    result = self.check_user_inputs_password(var_list)
+
+                    # if no error found, pass
+                    if result:
+                        messagebox.showerror("Validation Error", "\n".join(result))
+                        raise ValueError("Incorrect data inputs")
+
+                    # check if accesscode/activeflag change
+                    # if so, update user record
+                    if self.curr_access_code != accesscode or self.curr_active_flag != activeflag:
+                        
+                        # conver active flag back to bool
+                        if activeflag == "Active":
+                            activeflag = 1
+                        if activeflag == "Inactive":
+                            activeflag = 0
+                            
+                        # update edit_user records details        
+                        conn.update(sql, (accesscode, activeflag, edit_user_id))
+
+                        output_msg.append("User account details updated")
+
+                    # check if any change req.
+                    # if not, alert user
+                    if self.curr_access_code == accesscode and self.curr_active_flag == activeflag and pw_update == False:
+                        messagebox.showinfo("Account Update", f"There is no change required on this account. Please ensure there is an update to a password/accesscode or activeflag.")
+
+                # update password into login_details table         
+                if i == 8 and pw_update:
+                    
+                    # encrypt pw to pass into db
+                    encrypt_pw = self.encryption(str(new_password),True)
+
+                    # update edit_user record details        
+                    conn.update(sql, (encrypt_pw, edit_user_id))
+
+                    # clean entrees
+                    self.username_var.set('')
+                    self.new_pass_entry.delete(0, tk.END)
+                    self.account_combobox.set('')
+                    self.access_code_entry.delete(0, tk.END)
+                    self.active_flag_entry.delete(0, tk.END)
+
+                    output_msg.append("Password for account updated")
+            
+            # if no errors found, pass
+            if output_msg:
+                messagebox.showinfo("Account Update", "\n".join(output_msg))
 
             # commit & close
             conn.close(True)      
@@ -197,42 +287,48 @@ class Tab7(ttk.Frame):
 
     def check_user_inputs_password(self, data_list) -> list:
         """
-        check user inputs. List passed with username, curr_pass, new_pass 1 & 2
+        check user inputs. Password, accesscode & activeflag
         Return output list of errors OR blank list
         """
 
         output_msg = []
 
-        # check if data input str
-        for i, data in enumerate(data_list):                
-            if len(data[1]) == 0:
-                output_msg.append(f'{data[0]}: Is missing input values')
+        # skip if not pw update req.
+        if data_list[0]:
+            # check if data input str
+            for i, data in enumerate(data_list):                
+                if len(data[1]) == 0:
+                    output_msg.append(f'{data[0]}: Is missing input values')
 
-        # check if password meets rules
-        for i in data_list[1]:
-
+            # check if password meets rules        
             # char param to cross check
             special_characters = "!@#$%^&*()-+?_=,<>/"
 
             # length check
-            if len(i[1]) < 12:
-                output_msg.append(f"{i[0]} : Password must be at least 12 characters")
+            if len(data_list[0]) < 12:
+                output_msg.append(f"Password must be at least 12 characters")
 
             # captilisation check
-            if not any(c.isupper() for c in i[1]):
-                output_msg.append(f"{i[0]} : Password must contain a capital letter")
+            if not any(c.isupper() for c in data_list[0]):
+                output_msg.append(f"Password must contain a capital letter")
 
             # check if number is present
-            if not any(c.isdigit() for c in i[1]):
-                output_msg.append(f"{i[0]} : Password must contain a number")
+            if not any(c.isdigit() for c in data_list[0]):
+                output_msg.append(f"Password must contain a number")
 
             # check if special char is present
-            if not any(c in special_characters for c in i[1]):
-                output_msg.append(f"{i[0]} : Password must contain a special character")
+            if not any(c in special_characters for c in data_list[0]):
+                output_msg.append(f"Password must contain a special character")
 
-        # check if pass 1 / 2 match
-        if str(data_list[2][1]) != str(data_list[3][1]):
-            output_msg.append("New passwords must match")
+        # check input access code
+        exist = any(data_list[1] in i for i in self.access_code_list)
+        
+        if not exist:
+            output_msg.append(f"Access code input is not supported.")
+ 
+        # check activeflag input = Active/Inactive
+        if data_list[2] not in ["Active","Inactive"]:
+            output_msg.append(f"Activeflag needs to be Active or Inactive")
 
         return output_msg
 
@@ -258,3 +354,29 @@ class Tab7(ttk.Frame):
             return self.f_key.encrypt(input_data.encode()).decode()
         else:
             return self.f_key.decrypt(input_data.encode()).decode()
+        
+    def pw_requirements_printout(self):
+        """
+        Docstring for pw_requirements_printout
+        
+        :param self
+        """
+        print_text = uf.password_requirements()
+
+        messagebox.showinfo(
+            print_text[0], 
+            print_text[1]
+            )
+
+    def accesscode_printout(self):
+        """
+        Docstring for accesscode_printout
+        
+        :param self
+        """
+        print_text = uf.access_code_list()
+
+        messagebox.showinfo(
+            print_text[0], 
+            print_text[1]
+            )

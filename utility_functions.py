@@ -381,4 +381,50 @@ def validate_customer_account(user_id:str, create:bool):
             conn.close()
         else:
             pass
-        return err    
+        return err
+    
+def password_requirements() -> list:
+    """
+    Docstring for password_requirements
+    
+    :return: 2 value list to pass back into msgbox
+    :rtype: list
+    """
+    return [
+    "Password Requirements", 
+    " Input passwords must comply with each of the below requirements"\
+        "\n1. Must contain one of the following special characters : !@#$%^&*()-+?_=,<>/ " \
+        "\n2. Must be at least 12 characters" \
+        "\n3. Must contain a capital letter" \
+        "\n4. Must contain a number"
+    ]
+
+def access_code_list() -> list:
+    """
+    Docstring for access_codes
+    
+    :return: 2 value list to pass back into msgbox
+    :rtype: list
+    """
+    # db connection & sql script get
+    conn = get_database_connection()
+    sql = load_sql_file("user_scripts.sql")
+    sql_statements = sql.replace("\n", "").split(";")
+
+    # enact sql scripts
+    for i, sql in enumerate(sql_statements):
+
+        # get accesscode info               
+        if i == 6:
+            all_accesscode_data = conn.query(sql, ())
+
+            if all_accesscode_data:
+                output_list = []
+
+                # clean data into list
+                for i in all_accesscode_data[1]:
+                    output_list.append(i[0])
+
+    output = "\n".join(output_list)
+
+    return ["Access Codes", f"{output}"]

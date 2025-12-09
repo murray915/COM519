@@ -2,9 +2,6 @@ import main_window as mw
 import utility_functions as uf
 
 # TODO: admin tab
-    # = create
-    # - password updates
-    # - access code update
     # - xml import/export
     # - application settings
 
@@ -38,9 +35,12 @@ if __name__ == "__main__":
     hello = True
 
     if hello:        
-        test_login = ["USR-001","CUS_USR"]
+        test_login = ["USR-002","CUS_USR"]
         main_win = mw.Main(test_login[0],test_login[1])
         result = main_win.run()
 
     else: 
         pass
+
+
+

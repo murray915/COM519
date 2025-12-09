@@ -243,8 +243,11 @@ class Tab5(ttk.Frame):
         self.new_pass_2_entry.grid(row=4, column=1, columnspan=2, sticky="we")
 
         # entrys / combobox
-        update_veh_data = tk.Button(password_reset_frame,text='Update Password',command=self.user_password_updater)
-        update_veh_data.grid(row=6, column=1)
+        update_pass_data = ttk.Button(password_reset_frame,text='Update Password',command=self.user_password_updater)
+        update_pass_data.grid(row=6, column=1)
+
+        pw_requirement_details = tk.Button(password_reset_frame,text='Password Requirements',command=self.pw_requirements_printout)
+        pw_requirement_details.grid(row=6, column=0)
 
         # format frame widgets
         for widget in password_reset_frame.winfo_children():
@@ -932,6 +935,7 @@ class Tab5(ttk.Frame):
         self.f_key = Fernet(self.key)
 
     def encryption(self, input_data: str, encypt: bool) -> str:
+
         """
         input string to be encypted/decrypted
         encypt = True for  encypt, False = Decrypt
@@ -944,3 +948,16 @@ class Tab5(ttk.Frame):
             return self.f_key.encrypt(input_data.encode()).decode()
         else:
             return self.f_key.decrypt(input_data.encode()).decode()
+
+    def pw_requirements_printout(self):
+        """
+        Docstring for pw_requirements_printout
+        
+        :param self
+        """
+        print_text = uf.password_requirements()
+
+        messagebox.showinfo(
+            print_text[0], 
+            print_text[1]
+            )
