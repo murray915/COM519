@@ -1,13 +1,10 @@
 import tkinter as tk
-import icecream as ic
 import utility_functions as uf
-import image_functions as ifc
-import registration_window as rg
-from PIL import Image, ImageTk
+import xml_functions as xfc
 from cryptography.fernet import Fernet
-from tkinter import PhotoImage, messagebox
-from tkinter import messagebox
 from tkinter import filedialog
+from tkinter import messagebox
+from tkinter import messagebox
 from tkinter import ttk
 
 class Tab7(ttk.Frame):
@@ -22,6 +19,11 @@ class Tab7(ttk.Frame):
         self.access_code_list = '-'
         self.username = '-'
 
+        self.db_table_list = '-'
+        self.var_values = {}        
+        self.var_widgets = {}
+        self.load_file = '-'
+        
         #encryption
         self.f_key = None
         self.get_key()
@@ -41,13 +43,23 @@ class Tab7(ttk.Frame):
         )
         close_app_button.grid(row=3, column=3)
 
+        # get data for frame contructions
+        self.get_db_data()
+
         # frame  - Password Reseter
         # row 0, col 0
         self.password_reseter_frame = self.frame_1()
 
-        # get data for frames
-        self.user_updater_data(False)
+        # frame  - Database XML Backup Creator
+        # row 1, col 0
+        self.xml_database_backup = self.frame_2()
 
+        # frame  - XML Importer
+        # row 1, col 1
+        self.xml_importer = self.frame_3()
+
+        # get data for created frames
+        self.user_updater_data(False)
 
     def frame_1(self):
         """
@@ -101,6 +113,77 @@ class Tab7(ttk.Frame):
             widget.grid_configure(padx=10, pady=5)
 
         return password_reseter_frame
+
+    def frame_2(self):
+        """
+        Constructor for frame 2: xml_database_backup with scrollable checkboxes
+        """
+        xml_database_backup = tk.LabelFrame(self.frame, text="Database XML backup Creator")
+        xml_database_backup.grid(row=1, column=0, padx=5, pady=5, sticky="nw")
+
+        # Label instructions
+        tk.Label(
+            xml_database_backup, 
+            text="Uncheck any tables not required to be backed up. \nAll checked tables once the button is pressed will be created within ./data/ subfolder."
+        ).grid(row=0, column=0, sticky="w")
+
+        # Create a canvas and scrollbar
+        canvas = tk.Canvas(xml_database_backup, width=200, height=200)
+        scrollbar = tk.Scrollbar(xml_database_backup, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Place canvas and scrollbar
+        canvas.grid(row=1, column=0, sticky="nw")
+        scrollbar.grid(row=1, column=1, sticky="ns")
+
+        # Create a frame inside the canvas to hold checkboxes
+        checkbox_frame = tk.Frame(canvas)
+        canvas.create_window((0, 0), window=checkbox_frame, anchor="nw")
+
+        # Add checkboxes
+        for i, value in enumerate(self.db_table_list):
+            key = f"checkbox_var_{value}"
+            self.var_values[key] = tk.IntVar(value=1)  # checkboxes created checked
+            cb = tk.Checkbutton(checkbox_frame, text=value, variable=self.var_values[key])
+            cb.grid(row=i, column=0, sticky="w")
+            self.var_widgets[key] = cb
+
+        # Update scrollregion whenever the frame changes
+        def on_frame_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        checkbox_frame.bind("<Configure>", on_frame_configure)
+
+        # buttons
+        create_db_backup = ttk.Button(xml_database_backup, text='Create backup', command=self.create_db_backup)
+        create_db_backup.grid(row=2, column=0, pady=10, sticky="w")
+
+        return xml_database_backup
+
+    def frame_3(self):
+        """
+        Constructor for frame 3: xml_importer
+        """
+        xml_importer = tk.LabelFrame(self.frame, text="Database XML Importer")
+        xml_importer.grid(row=2, column=0, padx=5, pady=5, sticky="nw")
+
+        # Labels
+        self.load_file_var = tk.StringVar(value=self.load_file)
+        tk.Label(xml_importer, text="Previously Loaded File").grid(row=0, column=0)
+        tk.Label(xml_importer, textvariable=self.load_file_var).grid(row=0, column=1)
+
+        # buttons
+        upload_xml_button = tk.Button(xml_importer, text="Upload xml file", command=self.select_file)
+        upload_xml_button.grid(row=6, column=1)
+
+        xml_requirements_printout = tk.Button(xml_importer, text="Get XML requirement Details", command=self.xml_requirements_printout)
+        xml_requirements_printout.grid(row=7, column=1)
+
+        # format frame widgets
+        for widget in xml_importer.winfo_children():
+            widget.grid_configure(padx=10, pady=5)
+
+        return xml_importer
 
     def user_updater_data(self, update: bool) -> tuple[bool, str | None]:
         """
@@ -285,6 +368,53 @@ class Tab7(ttk.Frame):
 
             return False, str(err)
 
+    def get_db_data(self) -> tuple[bool, list | None]:
+        """
+        Docstring for get_db_data
+        
+        :param self: pulled data
+        :return: True for success, False & errorstring for failure
+        :rtype: tuple[bool, str | None]
+        """
+        try:        
+
+            # env params
+            conn = None
+            
+            # db connection & sql script get
+            conn = uf.get_database_connection()
+            sql = uf.load_sql_file("admin_scripts.sql")
+            sql_statements = sql.replace("\n", "").split(";")
+
+            # enact sql scripts
+            for i, sql in enumerate(sql_statements):
+
+                # update user password
+                if i == 0:
+                    output_data = []
+                    data = conn.query(sql, ())
+                    
+                    # clean data into list
+                    for i in data[1]:
+                        output_data.append(i[0])
+                    
+                    # add to self var
+                    self.db_table_list = output_data
+            
+            # commit & close
+            conn.close(True)
+
+            return True, output_data
+
+        except Exception as err:
+            print(f"Unexpected error: {err}, type={type(err)}")
+            if conn:
+                conn.close()
+            else:
+                pass
+
+            return False, str(err)
+
     def check_user_inputs_password(self, data_list) -> list:
         """
         check user inputs. Password, accesscode & activeflag
@@ -331,6 +461,39 @@ class Tab7(ttk.Frame):
             output_msg.append(f"Activeflag needs to be Active or Inactive")
 
         return output_msg
+
+    def create_db_backup(self) -> tuple[bool, str | None]:
+        """
+        Docstring for create_db_backup
+        
+        :param self: Description
+        :return: True for success, False & errorstring for failure
+        :rtype: bool
+        """
+        try:
+                
+            db_list_backup = []
+
+            # get status from created checkboxes
+            for key, var in self.var_values.items():
+                status = var.get()
+                
+                # if status is true (checked), creation = True
+                if status:
+                    temp_str = key
+                    outstr = temp_str.replace("checkbox_var_","")
+                    db_list_backup.append(outstr)
+
+            # pass db_table list to create backups
+            xfc.database_backup(db_list_backup)
+            messagebox.showinfo("Backup Info","Backup created successfull into ./data/... folder")
+
+            return True
+
+        except Exception as err:
+            messagebox.showerror("Error Info","Backup process error")
+            print(f"Unexpected error: {err}, type={type(err)}")
+            return False, str(err)
 
     def get_key(self):
         """ 
@@ -380,3 +543,54 @@ class Tab7(ttk.Frame):
             print_text[0], 
             print_text[1]
             )
+
+    def xml_requirements_printout(self):
+        """
+        Docstring for xml_requirements_printout
+        
+        :param self
+        """
+        print_text = uf.xml_requirements()
+
+        messagebox.showinfo(
+            print_text[0], 
+            print_text[1]
+            )
+
+    def select_file(self) -> tuple[bool, str | None]:
+        """"
+        file selector
+        """
+        
+        try:
+
+            # get filepath from user
+            filepath = filedialog.askopenfilename(
+                title="Select a file",
+                filetypes=[("xml files", "*.xml")]
+            )
+            
+            # check user filepath values
+            if filepath == '' or filepath is None:
+                messagebox.showerror("show info","File not selected")
+                raise ValueError("No value file selected")                
+
+            self.load_file = filepath
+            self.load_file_var.set(self.load_file)
+
+            # attempt to load file
+            result = xfc.database_updater_from_xml(filepath)
+
+            # check results of attempting to load file
+            if result[0]:
+                messagebox.showinfo("show info","File loaded successfully")
+
+            else:
+                messagebox.showerror("show error",f"Error when loading file please check the filenmae and all requirements")
+                raise ValueError("Error on fileload")    
+
+            return True
+
+        except Exception as err: # Exception Block. Return data to user & False
+            print(f"\n\n** Unexpected {err=}, {type(err)=} ** \n\n")  
+            return False, str(err)

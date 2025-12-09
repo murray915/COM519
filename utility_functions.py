@@ -399,6 +399,23 @@ def password_requirements() -> list:
         "\n4. Must contain a number"
     ]
 
+def xml_requirements() -> list:
+    """
+    Docstring for xml_requirements
+    
+    :return: 2 value list to pass back into msgbox
+    :rtype: list
+    """
+    return [
+    "XML file Requirements", 
+        "\n1. XML file must be named after the db table being updated, i.e. access_codes, login_details ...etc" \
+        "\n2. File must be over two lines, content on second line" \
+        "\n3. Each element matches the db table name within a 'data' tag : e.g '<access_code>ADMIN--11</access_code>' " \
+        "\n Full file example:\n" \
+        '\n<?xml version="1.0" encoding="utf-8"?>' \
+        '\n<root><data id="1"><access_code>ADMIN--11</access_code><description>Administrator</description></data></root>'
+    ]
+
 def access_code_list() -> list:
     """
     Docstring for access_codes

@@ -1,10 +1,7 @@
 import tkinter as tk
-import icecream as ic
 import utility_functions as uf
-import image_functions as ifc
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import messagebox
-from tkinter import filedialog
 from tkinter import ttk
 
 class Tab4(ttk.Frame):

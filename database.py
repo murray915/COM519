@@ -43,6 +43,11 @@ class Database:
     def insert(self, sql, params=None):
         self.cursor.execute(sql, params or ())
 
+    def insertMany(self, sql, params):
+        if not params:
+            raise ValueError("insertMany requires a non-empty list of parameters")
+        self.cursor.executemany(sql, params)
+
     def update(self, sql, params=None):
         self.cursor.execute(sql, params or ())
 

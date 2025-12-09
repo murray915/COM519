@@ -1,24 +1,24 @@
 import main_window as mw
 import utility_functions as uf
 
-# TODO: admin tab
-    # - xml import/export
-    # - application settings
-
 # TODO: Booking tab
     # - create
     # - add new booking
     # - amend / cancel existing booking
     # - add finance SQL view & window
 
-# TODO: xml
 # TODO: triggers
 
 
-##### IF I HAVE TIME #####
+##### ##### ##### ##### ##### 
+#####   IF I HAVE TIME  #####
+##### ##### ##### ##### #####
+ 
 # TODO:
     # Add image to garage
     # add image to account
+    # - xml import (db table type checker)
+    # - application settings
 
 if __name__ == "__main__":
     
@@ -40,7 +40,10 @@ if __name__ == "__main__":
         result = main_win.run()
 
     else: 
-        pass
+        
+        import xml_functions as xfc
 
+        filepath = "C:/Users/eliot/Downloads/access_codes.xml"
+        result = xfc.database_updater_from_xml(filepath)
 
-
+        print(result)
