@@ -17,159 +17,168 @@ class Tab1(ttk.Frame):
         self.tab_name = "Homepage"
         self.controller = controller
         
-        self.table_1 = None
-        self.table_2 = None
-
+        self.table_1 = ""
+        self.table_2 = ""
+        self.txt_table_1 = None
+        self.txt_table_2 = None
 
         # general params
         self.frame = tk.Frame(self)
         self.frame.pack()
 
         # close app button
-        close_app_button = tk.Button(self.frame,
-                text="Close Application",
-                command=self.controller.close_application
+        close_app_button = tk.Button(
+            self.frame,
+            text="Close Application",
+            command=self.controller.close_application
         )
         close_app_button.grid(row=3, column=3)
 
         # frame 1 - photo
-        photo_info_frame = tk.LabelFrame(self.frame, text="Welcome to the Garage Booking App")
+        photo_info_frame = tk.LabelFrame(
+            self.frame, text="Welcome to the Garage Booking App"
+        )
         photo_info_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
 
         # background image
         self.image = PhotoImage(file=".\images\output-onlinepngtools.png")
-        tk.Label(photo_info_frame, image=self.image).grid(row=1, column=1, rowspan=3, padx=10, pady=10)
+        tk.Label(photo_info_frame, image=self.image).grid(
+            row=1, column=1, rowspan=3, padx=10, pady=10
+        )
         
-        ttk.Label(photo_info_frame, text=
-                  "This application allows you to book availble services from local garages " \
-                  "\n\n > Please select the Booking Tab to book a service/appointment if you know where & what you want" \
-                  "\n\n > Please select the Stock Tab to see/add items, check stock levels, or deactivate items" \
-                  "\n\n > Please select the Garages Tab to see which Garages & services are availble for them" \
-                  "\n\n > Please select the Settings Tab to update any Account Data"
-                  ).grid(row=1, column=0)
+        ttk.Label(photo_info_frame, text=(
+            "This application allows you to book availble services from local garages "
+            "\n\n > Please select the Booking Tab to book a service/appointment if you know where & what you want"
+            "\n\n > Please select the Stock Tab to see/add items, check stock levels, or deactivate items"
+            "\n\n > Please select the Garages Tab to see which Garages & services are availble for them"
+            "\n\n > Please select the Settings Tab to update any Account Data"
+        )).grid(row=1, column=0)
         
         # frame 2 - User Account Info
-        user_info_frame = tk.LabelFrame(self.frame, text="Notifications    \t\t\t\t\t\tFuture Bookings  \t\t\t\t\t\tCompleted Bookings")
+        user_info_frame = tk.LabelFrame(
+            self.frame, 
+            text="Notifications    \t\t\t\t\t\tFuture Bookings  \t\t\t\t\t\tCompleted Bookings"
+        )
         user_info_frame.grid(row=1, column=0, columnspan=3, padx=10, pady=10)
         
+        # initial table data
         self.get_table_data()
 
-        # Convert table → string
-        table_text = self.table_1
+        # Table 1 
+        text_frame_1 = tk.Frame(user_info_frame)
+        text_frame_1.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-        # Frame for scrollbars + text
-        text_frame = tk.Frame(user_info_frame)
-        text_frame.grid(row=0, column=0, padx=10, pady=10)
+        self.txt_table_1 = tk.Text(
+            text_frame_1, 
+            font=("Courier New", 10), 
+            width=80, 
+            height=15, 
+            wrap="none"
+        )
 
-        txt = tk.Text(text_frame, 
-                    font=("Courier New", 10), 
-                    width=80, 
-                    height=15, 
-                    wrap="none")
+        scroll_y1 = tk.Scrollbar(text_frame_1, orient="vertical", command=self.txt_table_1.yview)
+        scroll_x1 = tk.Scrollbar(text_frame_1, orient="horizontal", command=self.txt_table_1.xview)
+        self.txt_table_1.configure(yscrollcommand=scroll_y1.set, xscrollcommand=scroll_x1.set)
 
-        # Scrollbars
-        scroll_y = tk.Scrollbar(text_frame, orient="vertical", command=txt.yview)
-        scroll_x = tk.Scrollbar(text_frame, orient="horizontal", command=txt.xview)
+        self.txt_table_1.grid(row=0, column=0, sticky="nsew")
+        scroll_y1.grid(row=0, column=1, sticky="ns")
+        scroll_x1.grid(row=1, column=0, sticky="ew")
 
-        txt.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
+        self.txt_table_1.insert("1.0", self.table_1)
+        self.txt_table_1.config(state="disabled")
 
-        txt.grid(row=0, column=0, sticky="nsew")
-        scroll_y.grid(row=0, column=1, sticky="ns")
-        scroll_x.grid(row=1, column=0, sticky="ew")
+        # Table 2
+        text_frame_2 = tk.Frame(user_info_frame)
+        text_frame_2.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
-        txt.insert("1.0", table_text)
-        txt.config(state="disabled")
+        self.txt_table_2 = tk.Text(
+            text_frame_2, 
+            font=("Courier New", 10), 
+            width=80, 
+            height=15, 
+            wrap="none"
+        )
 
-        # Convert table → string
-        table_text = self.table_2
+        scroll_y2 = tk.Scrollbar(text_frame_2, orient="vertical", command=self.txt_table_2.yview)
+        scroll_x2 = tk.Scrollbar(text_frame_2, orient="horizontal", command=self.txt_table_2.xview)
+        self.txt_table_2.configure(yscrollcommand=scroll_y2.set, xscrollcommand=scroll_x2.set)
 
-        # Frame for scrollbars + text
-        text_frame = tk.Frame(user_info_frame)
-        text_frame.grid(row=0, column=1, padx=10, pady=10)
+        self.txt_table_2.grid(row=0, column=0, sticky="nsew")
+        scroll_y2.grid(row=0, column=1, sticky="ns")
+        scroll_x2.grid(row=1, column=0, sticky="ew")
 
-        txt = tk.Text(text_frame, 
-                    font=("Courier New", 10), 
-                    width=80, 
-                    height=15, 
-                    wrap="none")
+        self.txt_table_2.insert("1.0", self.table_2)
+        self.txt_table_2.config(state="disabled")
 
-        # Scrollbars
-        scroll_y = tk.Scrollbar(text_frame, orient="vertical", command=txt.yview)
-        scroll_x = tk.Scrollbar(text_frame, orient="horizontal", command=txt.xview)
 
-        txt.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
+    def on_show(self):
+        """Called whenever this tab becomes active"""
+        success = self.get_table_data()
+        if success:
+            # Update Table 1
+            self.txt_table_1.config(state="normal")
+            self.txt_table_1.delete("1.0", "end")
+            self.txt_table_1.insert("1.0", self.table_1)
+            self.txt_table_1.config(state="disabled")
 
-        txt.grid(row=0, column=0, sticky="nsew")
-        scroll_y.grid(row=0, column=1, sticky="ns")
-        scroll_x.grid(row=1, column=0, sticky="ew")
-
-        txt.insert("1.0", table_text)
-        txt.config(state="disabled")
+            # Update Table 2
+            self.txt_table_2.config(state="normal")
+            self.txt_table_2.delete("1.0", "end")
+            self.txt_table_2.insert("1.0", self.table_2)
+            self.txt_table_2.config(state="disabled")
 
     def get_user_info(self):
-        """
-        get booking data (prev/upcoming) and cardata
-        update respective self. per
-        """
+        """get booking data (prev/upcoming) and car data"""
         pass
 
-    def get_table_data(self) -> tuple[bool, str | None]:
+    def get_table_data(self) -> bool:
         """
-        update self.table 1/2 with data from bookings
-
+        update self.table_1 / self.table_2 with data from bookings
+        returns True if successful, False otherwise
         """
-        
+        conn = None
         try:
-            
-            # db connection & sql script get
             conn = uf.get_database_connection()
             sql = uf.load_sql_file("booking_data_scripts.sql")
             sql_statements = sql.replace("\n", "").split(";")
 
-            # enact sql scripts
-            for i, sql in enumerate(sql_statements):
+            for i, statement in enumerate(sql_statements):
 
                 # get user_name
                 if i == 0:
-                    user_name = conn.query(sql, (self.curr_user,))
+                    user_name = conn.query(statement, (self.curr_user,))
 
                 # get table 1 data
-                if i == 1:
-                    data = conn.query(sql, (user_name[1][0][0],))
-
-                    # setup table
-                    self.table_1=PrettyTable()
-                    self.table_1.field_names = ["Login Name", "Booking Ref", "Date of Booking", "Garage Name", "Customer Vechicle Reg","Package","Parts Quoted/Recieved","QTY of Parts"]
-
-                    # add data to self.table
-                    for i in data[1]:
-                        self.table_1.add_row(i)
-
+                elif i == 1:
+                    data = conn.query(statement, (user_name[1][0][0],))
+                    self.table_1 = PrettyTable()
+                    self.table_1.field_names = [
+                        "Login Name", "Booking Ref", "Date of Booking", "Garage Name",
+                        "Customer Vehicle Reg", "Package", "Payment Method", "Stats", "Total Paid (Inc VAT)"
+                    ]
+                    for row in data[1]:
+                        self.table_1.add_row(row)
                     self.table_1 = self.table_1.get_string()
-            
+
                 # get table 2 data
-                if i == 2:
-                    data = conn.query(sql, (user_name[1][0][0],))
-
-                    # setup table
-                    self.table_2=PrettyTable()
-                    self.table_2.field_names = ["Login Name", "Booking Ref", "Date of Booking", "Garage Name", "Customer Vechicle Reg","Package","Parts Quoted/Recieved","QTY of Parts"]
-
-                    # add data to self.table
-                    for i in data[1]:
-                        self.table_2.add_row(i)
-
+                elif i == 2:
+                    data = conn.query(statement, (user_name[1][0][0],))
+                    self.table_2 = PrettyTable()
+                    self.table_2.field_names = [
+                        "Login Name", "Booking Ref", "Date of Booking", "Garage Name",
+                        "Customer Vehicle Reg", "Package", "Payment Method", "Stats", "Total Paid (Inc VAT)"
+                    ]
+                    for row in data[1]:
+                        self.table_2.add_row(row)
                     self.table_2 = self.table_2.get_string()
 
+            if conn:
+                conn.close(False)
 
-            conn.close(False)                        
             return True
 
         except Exception as err:
             print(f"Unexpected error: {err}, type={type(err)}")
             if conn:
                 conn.close()
-            else:
-                pass
-
-            return False, str(err)
+            return False

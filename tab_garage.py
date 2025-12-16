@@ -158,9 +158,9 @@ class Tab6(ttk.Frame):
         self.garage_phoneno_edit_entry.grid(row=7, column=1, columnspan=2, sticky="we")
 
         self.contact_staff_edit_var = tk.StringVar()
-        tk.Label(garage_edit_create_frame, text="Phone Number").grid(row=7, column=0)
+        tk.Label(garage_edit_create_frame, text="Contanct Staff Member").grid(row=8, column=0)
         self.garage_contact_staff_edit_entry = tk.Entry(garage_edit_create_frame, textvariable=self.contact_staff_edit_var, width=40)
-        self.garage_contact_staff_edit_entry.grid(row=7, column=1, columnspan=2, sticky="we")
+        self.garage_contact_staff_edit_entry.grid(row=8, column=1, columnspan=2, sticky="we")
 
         # entrys / combobox
         self.garge_list_edit_combobox = ttk.Combobox(garage_edit_create_frame, values=self.garge_list)
@@ -181,6 +181,11 @@ class Tab6(ttk.Frame):
             widget.grid_configure(padx=10, pady=5)
 
         return garage_edit_create_frame
+
+    def on_show(self):
+        """Called whenever this tab becomes active"""
+        print("Refreshing Tab data")
+        self.get_garage_info()
 
     def get_garage_info(self) -> tuple[bool, str | None]:
         """
@@ -288,7 +293,8 @@ class Tab6(ttk.Frame):
         """
         try:
             conn = None
-
+            stock_table_update = False
+            
             # get the part_id from search/selector
             dropdown_checker = self.garge_list_edit_combobox.get()
 
@@ -363,7 +369,7 @@ class Tab6(ttk.Frame):
                     address = self.garage_address_edit_entry.get()
                     postcode = self.garage_postcode_edit_entry.get()
                     email = self.garage_email_edit_entry.get()
-                    phonenumber = str(self.garage_phoneno_edit_entry.get())
+                    phonenumber = self.garage_phoneno_edit_entry.get()
                     contact_staff = self.garage_contact_staff_edit_entry.get()
                 
                     variable_list = [
@@ -406,6 +412,9 @@ class Tab6(ttk.Frame):
                 # create new existing record
                 # action = True button pressed by user
                 if i == 6 and action:
+                    
+                    # change update status; stock table update
+                    stock_table_update = True
 
                     # check the edit box is unticket (thus create new record)
                     state = self.check_var.get()
@@ -427,6 +436,15 @@ class Tab6(ttk.Frame):
                     self.garage_email_edit_entry.delete(0, tk.END)
                     self.garage_phoneno_edit_entry.delete(0, tk.END)
                     self.garage_contact_staff_edit_entry.delete(0, tk.END)
+
+                if i == 7 and stock_table_update:
+
+                    # create new column for stock, default all 0 stockl lvl
+                    sql_garage_id = f'stocklevel_{self.next_garage_id.replace("-","_")}'  
+                    sql_complete = sql.replace("replace",sql_garage_id)
+
+                    conn.update(sql_complete, ())
+
 
             # commit & close
             conn.close(True)            

@@ -1,5 +1,6 @@
 import tkinter as tk
 import icecream as ic
+import re
 import utility_functions as uf
 import image_functions as ifc
 import registration_window as rg
@@ -35,6 +36,7 @@ class Tab5(ttk.Frame):
         self.mot_status = '-'
         self.veh_active_flag = '-'
         self.veh_list = '-'
+        self.garge_list = '-'
 
         self.membership_id = '-'
         self.customer_id = '-'
@@ -56,8 +58,8 @@ class Tab5(ttk.Frame):
         "\n> To update password, please input current password and then your new password (in both the first and second box), then 'Update my password', button." \
         "\n> To deactivate your account completely. Please tick the deactivation box, and input username and password. This will complete the process and close the application & deactivate your account. To reactivate, please untick the box when updating" \
         
-        "\n\n> To add a new vehicle to your account, please within the 'Vehicle Information' window, add the details to the 4 boxes and press the 'Update/Add vehicle' button." \
-        "\n> To update a vehicle, please select one vehicle from the dropdown box, update respective fields, and press'Update/Add vehicle' button. To deactivate a vehicle, check box to deactivate and press 'update my vehicle list', to reactivate, when updating untick the box." \
+        "\n\n> To add a new vehicle to your account, please within the 'Vehicle Information' window, add the details to the 4 boxes and press the 'Add vehicle' button. MOT status = 'pass' or 'fail'" \
+        "\n> To update a vehicle, please select one vehicle from the dropdown box, update respective fields, and press'Update vehicle' button. To deactivate a vehicle, check box to deactivate and press 'update my vehicle list', to reactivate, when updating untick the box." \
         "\n\n>To create a membership, input Card/Iban/day for payment then press 'Create/Update Details'. Update data displayed and press the 'Create/Update Details', to deactivate press the 'Deactivate my membership'" \
         "\n> To edit update data displayed and press the 'Create/Update Details', to deactivate press the 'Deactivate my membership'"
         ).pack(pady=20)
@@ -139,6 +141,9 @@ class Tab5(ttk.Frame):
         self.active_flag_var = tk.StringVar()
 
         # entrys / combobox
+        garage_list_details = tk.Button(account_info_frame,text='Garage List',command=self.get_garagelist_details)
+        garage_list_details.grid(row=6, column=4)
+
         update_user_data = tk.Button(account_info_frame,text='Update User Data',command=lambda: self.get_user_info(True))
         update_user_data.grid(row=1, column=4)
         
@@ -201,8 +206,11 @@ class Tab5(ttk.Frame):
         veh_clear_data = tk.Button(account_vehicle_frame,text='Clear Input Vehicle Data',command=self.clear_inputs)
         veh_clear_data.grid(row=1, column=4)
 
-        update_veh_data = tk.Button(account_vehicle_frame,text='Update / Add Vehicle Data',command=lambda: self.get_veh_info(True, False))
+        update_veh_data = tk.Button(account_vehicle_frame,text='Update Vehicle Data',command=lambda: self.get_veh_info(True, False))
         update_veh_data.grid(row=6, column=4)
+
+        create_veh_data = tk.Button(account_vehicle_frame,text='Add Vehicle Data',command=lambda: self.get_veh_info(False, True))
+        create_veh_data.grid(row=6, column=5)
 
         self.get_veh_info(False, False)
 
@@ -311,6 +319,11 @@ class Tab5(ttk.Frame):
             widget.grid_configure(padx=10, pady=5)
 
         return membership_frame
+
+    def on_show(self):
+        """Called whenever this tab becomes active"""
+        print("Refreshing Tab data")
+        self.get_user_info(False)
 
     def get_membership_info(self, action:bool, delete: bool) -> tuple[bool, str | None]:
         """
@@ -545,6 +558,8 @@ class Tab5(ttk.Frame):
 
         try:
             conn = None
+            params = ()
+            sql_params = ()
 
             # get the part_id from search/selector
             dropdown_checker = self.veh_combobox.get()
@@ -654,9 +669,58 @@ class Tab5(ttk.Frame):
                   
                     conn.update(sql, (car_ref,car_make,car_model,car_status, active_status, veh_id))
 
-
                     messagebox.showinfo("Show Info",f"Vehicle Details updated")
                     
+                if i == 6 and create:
+                    
+                    # get user inputs
+                    params = (
+                        self.car_reg_entry.get(),
+                        self.car_make_entry.get(),
+                        self.car_model_entry.get(),
+                        self.mot_status_entry.get()
+                    )
+
+                    output_msg = []
+
+                    # check if data input str               
+                    for i, data in enumerate(params):
+
+                        # check if none value
+                        if data is None or data == "":
+                            output_msg.append(f'Missing input values')
+
+                    # check if date format dd/MM/yyyy >= today
+                    if not self.is_valid_uk_reg(params[0]):
+                        print("Invalid UK registration format (AA00 AAA)")
+
+                    # check if date format dd/MM/yyyy >= today
+                    # if true, correct input capitalisation
+                    if params[3].lower() not in ['pass','fail']:
+                        output_msg.append(f'MOT Status has to be "Pass", or "Fail"')
+                    else:
+                        if params[3].lower() == 'pass':
+                            mot_status = "Pass"
+                        else:
+                            mot_status = "N/A"
+
+                    # Return errors to user
+                    if output_msg:
+                        raise ValueError(output_msg)
+                    
+                    sql_params = (
+                        next_veh_id,
+                        self.customer_ref,
+                        self.car_reg_entry.get(),
+                        self.car_make_entry.get(),
+                        self.car_model_entry.get(),
+                        mot_status,
+                        True
+                    )
+
+                    # create new veh
+                    conn.insert(sql, sql_params)
+
                     # remove existing data
                     self.customer_veh_id_var.set('-')
                     self.car_reg_entry.delete(0, tk.END)
@@ -861,6 +925,8 @@ class Tab5(ttk.Frame):
 
                         messagebox.showinfo("Show Info","Account Details updated")
 
+                        self.get_user_info()
+
             # commit & close
             conn.close(True)
 
@@ -949,7 +1015,7 @@ class Tab5(ttk.Frame):
         else:
             return self.f_key.decrypt(input_data.encode()).decode()
 
-    def pw_requirements_printout(self):
+    def pw_requirements_printout(self):        
         """
         Docstring for pw_requirements_printout
         
@@ -961,3 +1027,28 @@ class Tab5(ttk.Frame):
             print_text[0], 
             print_text[1]
             )
+
+    def get_garagelist_details(self):
+        """
+        Docstring for get_garagelist_details
+        
+        :param self
+        """
+        print_text = uf.get_garagelist_details()
+
+        messagebox.showinfo(
+            print_text[0], 
+            print_text[1]
+            )
+
+    def is_valid_uk_reg(self, reg: str) -> bool:
+        """
+        Docstring for is_valid_uk_reg
+        
+        :param self: Description
+        :param reg: input str from customer veh
+        :type reg: str
+        :return: Return bool, if matching AA00 AAA (regex used)
+        :rtype: bool
+        """
+        return bool(re.fullmatch(r'[A-Z]{2}\d{2} [A-Z]{3}', reg.upper()))

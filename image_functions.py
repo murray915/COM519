@@ -1,63 +1,61 @@
-import utility_functions as uf
-import icecream as ic
-import image_functions as ifc
-from PIL import Image, ImageTk
-import io
 import os
+import io
+from PIL import Image, ImageTk
+from database import Database
+import utility_functions as uf
 
-
-def upload_tk_image_to_db(img_id, filepath) -> tuple[bool, str | None]:
+def upload_image_to_db(part_id: str, filepath: str) -> tuple[bool, str | None]:
     """
-    upload image into db as BLOB using pack_id as the key
-    input img_id = part_id
-    input filepath = filename to open file
+    Upload a PNG or JPG image into the stock table as a BLOB.
+    If JPG, it will be converted to PNG with white made transparent.
 
-    return bool, and if False errorstring
+    :param part_id: the part_id of the stock item
+    :param filepath: path to the PNG or JPG image
+    :return: (success: bool, error_message: str | None)
     """
-
     try:
+        if not os.path.exists(filepath):
+            return False, "File does not exist"
 
-        conn = None
+        ext = os.path.splitext(filepath)[1].lower()
+        if ext not in (".png", ".jpg", ".jpeg"):
+            return False, "File must be PNG or JPG"
 
-        # file check
-        # Check extension
-        if not filepath.lower().endswith(".png"):
-            raise ValueError("File must have .png extension")
+        # Convert JPG → PNG if needed
+        if ext in (".jpg", ".jpeg"):
+            img = Image.open(filepath).convert("RGBA")
+            # Make white (or near white) transparent
+            new_data = [
+                (255, 255, 255, 0) if r > 240 and g > 240 and b > 240 else (r, g, b, a)
+                for r, g, b, a in img.getdata()
+            ]
+            img.putdata(new_data)
 
-        # Read file
-        with open(filepath, "rb") as f:
+            tmp_png = "./images/tmp_upload.png"
+            os.makedirs(os.path.dirname(tmp_png), exist_ok=True)
+            img.save(tmp_png, "PNG")
+            upload_path = tmp_png
+        else:
+            upload_path = filepath
+
+        # Read image bytes
+        with open(upload_path, "rb") as f:
             blob_data = f.read()
 
-        # Validate PNG signature
-        if blob_data[:8] != b"\x89PNG\r\n\x1a\n":
-            raise ValueError("File is not a valid PNG image")
+        # Store in DB using your Database class
+        with Database("./data/database.db") as db_conn:
+            sql = "UPDATE stock SET image = ? WHERE part_id = ?;"
+            db_conn.update(sql, (blob_data, part_id))
+            db_conn.commit()
 
-        # db connection & sql script get
-        conn = uf.get_database_connection()
-        sql = uf.load_sql_file("database_image_scripts.sql")
-        sql_statements = sql.replace("\n", "").split(";")
+        # Clean up temporary PNG if created
+        if ext in (".jpg", ".jpeg") and os.path.exists(tmp_png):
+            os.remove(tmp_png)
 
-        # enact sql scripts
-        for i, sql in enumerate(sql_statements):
+        return True, None
 
-            # insert blob data into db
-            if i == 1:
-                conn.update(sql, (blob_data,img_id))
-
-
-        # commit & close connections
-        conn.close(True)
-        
-        return True
-
-    except Exception as err:
-        print(f"Unexpected error: {err}, type={type(err)}")
-        if conn:
-            conn.close()
-        else:
-            pass
-
-        return False, str(err)
+    except Exception as e:
+        return False, str(e)
 
 
 def get_tk_image_from_db(img_id) -> object | None:
@@ -109,62 +107,4 @@ def get_tk_image_from_db(img_id) -> object | None:
         else:
             pass
 
-        return False, str(err)
-    
-
-def upload_jpg_files_to_db(input_item_name: str, filepath: str) -> tuple[bool, str | None]:
-    """
-    pass jpg files, make transparent
-
-    input filepath where the file is, outputpath where output is to be created, input_item_name = item_id
-    """   
-
-    try:
-
-        from PIL import Image
-
-        # file check
-        # Check extension
-        if not filepath.lower().endswith(".jpg"):
-            raise ValueError("File must have .jpg extension")
-
-        # Open the JPG image
-        jpg_file = filepath
-        img_id = input_item_name
-
-        img = Image.open(jpg_file).convert("RGBA") 
-
-        # Open the JPG
-        jpg_file = "input.jpg"
-    
-        # Get data
-        datas = img.getdata()
-
-        new_data = []
-        for item in datas:
-            # Replace white (or near-white) with transparency
-            if item[0] > 240 and item[1] > 240 and item[2] > 240:  # adjust threshold
-                new_data.append((255, 255, 255, 0))  # transparent
-            else:
-                new_data.append(item)
-
-        # Update image data
-        img.putdata(new_data)
-
-        # Save as PNG
-        img.save("./images/output.png", "PNG")
-
-        # Convert and save as PNG
-        png_file = "./images/output.png"
-        img.save(png_file, "PNG")
-        ifc.upload_tk_image_to_db(img_id, png_file)
-
-        # delete temp png file
-        if os.path.exists(png_file):
-            os.remove(png_file)
-
-        return True
-    
-    except Exception as err:
-        print(f"Unexpected error: {err}, type={type(err)}")
         return False, str(err)

@@ -416,6 +416,88 @@ def xml_requirements() -> list:
         '\n<root><data id="1"><access_code>ADMIN--11</access_code><description>Administrator</description></data></root>'
     ]
 
+def staff_id_requirements() -> list:
+    """
+    Docstring for xml_requirements
+    
+    :return: 2 value list to pass back into msgbox
+    :rtype: list
+    """
+    return [
+    "Staff ID / Type Requirements", 
+        "\nThe staff Type, should refect the members role, e.g. Mechanic, Front Desk ... etc" \
+        "\nOnce all input and updated, a staff id number will be automatically assigned. Primary Garage can be assigned by the user within their respective 'account' tab on login"
+    ]
+
+def get_garagelist_details() -> list:
+    """
+    Docstring for xml_requirements
+    
+    :return: 2 value list to pass back into msgbox
+    :rtype: list
+    """
+    # setup params
+    text_str_create_list = []
+    output_list = ["Garage Id List"]
+
+    # get all garage details
+    data = get_garage_list()
+
+    # add into output list
+    for i in data[1]:
+        text_str_create_list.append(i)
+    
+    # combine list into str & append outmessage
+    text_str_create_list = ", \n".join(text_str_create_list)
+    output_list.append("\nPlease input one of the following garage ids :\n\n" + text_str_create_list)
+
+    return output_list
+
+def get_garage_list() -> tuple[bool, list | None]:
+    """
+    Docstring for get_garage_list
+    
+    :return: list of garage details
+    :rtype: list
+    :return: True for success with None, False & errorstring for failure
+    :rtype: tuple[bool, str | None]
+    """
+    try:
+        output_list = []
+
+        # db connection & sql script get
+        conn = get_database_connection()
+        sql = load_sql_file("garage_scripts.sql")
+        sql_statements = sql.replace("\n", "").split(";")
+
+        # enact sql scripts
+        for i, sql in enumerate(sql_statements):
+
+            # get all garage_id data for dropdown
+            if i == 1:
+                all_garage_data = conn.query(sql, ())
+
+                if all_garage_data:
+                    output_list = []
+
+                    # clean data intp list
+                    for i in all_garage_data[1]:
+                        output_list.append(i[0])
+
+        conn.close()
+
+        return True, output_list
+
+    except Exception as err:
+        print(f"Unexpected error: {err}, type={type(err)}")
+        if conn:
+            conn.close()
+        else:
+            pass
+        return False, err
+
+
+
 def access_code_list() -> list:
     """
     Docstring for access_codes
@@ -445,3 +527,145 @@ def access_code_list() -> list:
     output = "\n".join(output_list)
 
     return ["Access Codes", f"{output}"]
+
+
+def validate_staff_id(user_id: str, staff_type: str, create:bool) -> str:
+    """
+    Docstring     Check if staff ID present for user_id in db
+                If exist return id, if not create & return postcode_id
+    
+    :param user_id: str ... user_id for edit account
+    :param staff_type: str ... string value for type of staff for edit account
+    :param create: bool ... whether to update the db or allow process for testing
+    :return: True for success with None, False & errorstring for failure
+    :rtype: tuple[bool, str | None]
+    """
+    try:
+        conn = None
+        create_staff_id = False
+        update_staff_id = False
+        var_list = []
+        update_var_list = []
+        output = "0"
+
+        edit_id = user_id
+
+        # db connection & sql script get
+        conn = get_database_connection()
+        sql = load_sql_file("staff_scripts.sql")
+        sql_statements = sql.replace("\n", "").split(";")
+
+        # enact sql scripts (3 total)
+        for i, sql in enumerate(sql_statements):
+
+            # get next staff id
+            if i == 0:
+                staff_id = conn.query(sql, ())
+                staff_id = staff_id[1][0][0]
+
+            # check if user has staff id already
+            if i == 1:
+                result = conn.query(sql, (edit_id,))
+
+                # account has staff id
+                if not result[1]:
+                    create_staff_id = True
+                else:
+                    update_staff_id = True
+
+                    # create var list for update function
+                    for i, data in enumerate(result[1][0]):
+                        
+                        # change the staff type var
+                        if i == 2:
+                            update_var_list.append(staff_type)
+                        else:
+                            update_var_list.append(data)
+                    
+                    # add edit id
+                    update_var_list.append(edit_id)
+
+            # get next mech id
+            if i == 2:
+                mech_id = conn.query(sql, ())
+                mech_id = mech_id[1][0][0]
+
+            # create new staff id 
+            if i == 3 and create_staff_id:
+                
+                var_list = (
+                    staff_id, 
+                    edit_id,
+                    staff_type,
+                    mech_id
+                )
+
+                # insert into db
+                conn.insert(sql, var_list)
+
+            # update exist staff id record 
+            if i == 4 and update_staff_id:
+                
+                # update into db
+                conn.update(sql, update_var_list)
+
+        # commit records (false=testing)
+        # close db connection
+        if create:
+            conn.commit()
+
+        conn.close()
+
+        return True, None
+    
+    except Exception as err:
+        print(f"Unexpected error: {err}, type={type(err)}")
+        if conn:
+            conn.close()
+        else:
+            pass
+        return err
+
+def validate_primary_garage_id(user_id:str, create:bool):
+    """
+    Docstring     Check if garage ID present for user_id in db
+             
+    :param user_id: str ... user_id for login account
+    :param create: bool ... whether to update the db or allow process for testing
+    :return: True for success with None, False & errorstring for failure
+    :rtype: tuple[bool, str | None]
+    """
+    
+    try:
+        conn = None
+        output = "0"
+
+        # db connection & sql script get
+        conn = get_database_connection()
+        sql = load_sql_file("garage_scripts.sql")
+        sql_statements = sql.replace("\n", "").split(";")
+
+        # enact sql scripts (3 total)
+        for i, sql in enumerate(sql_statements):
+
+            # get next id
+            if i == 8:
+                result = conn.query(sql, (user_id,))
+
+
+        # commit records (false=testing)
+        # close db connection
+        if create:
+            conn.commit()
+
+        conn.close()
+
+        return result[1][0][0]
+
+    except Exception as err:
+        print(f"Unexpected error: {err}, type={type(err)}")
+        if conn:
+            conn.close()
+        else:
+            pass
+        return err

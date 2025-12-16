@@ -1,4 +1,5 @@
 from xml.sax.saxutils import XMLGenerator
+import xml.etree.ElementTree as ET
 import xml.sax
 import utility_functions as uf
 import io
@@ -71,8 +72,6 @@ class XMLWriter:
         # complete xml add footer
         self.gen.endElement("root")
         self.gen.endDocument()
-
-import xml.etree.ElementTree as ET
 
 class XMLReader:
     """
@@ -288,6 +287,7 @@ def database_updater_from_xml(filepath: str) -> tuple[bool, str | None]:
                 
                     # update sql, for each looped values
                     conn.insert(sql_template, row_data)
+                    
         # commit & close
         conn.close(True)
 

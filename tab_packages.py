@@ -121,6 +121,10 @@ class Tab4(ttk.Frame):
             sql_statements = sql.replace("\n", "").split(";")
         
             # enact sql scripts
+            # initialize variables that may be conditionally set in the loop
+            items_consumed = ""
+            item_qty_consumed = ""
+
             for i, sql in enumerate(sql_statements):
 
                 # get specific item_id data
@@ -183,10 +187,15 @@ class Tab4(ttk.Frame):
         self.items_consumed_entry = tk.Entry(package_edit_create_frame, textvariable=self.items_consumed)
         self.items_consumed_entry.grid(row=5, column=1)
 
+        self.item_qty_consumed = tk.StringVar()
+        tk.Label(package_edit_create_frame, text="QTY of Items Comsumed in Package").grid(row=6, column=0)
+        self.item_qty_consumed_entry = tk.Entry(package_edit_create_frame, textvariable=self.item_qty_consumed)
+        self.item_qty_consumed_entry.grid(row=6, column=1)
+
         self.activeflag = tk.StringVar()
-        tk.Label(package_edit_create_frame, text="Active Flag").grid(row=6, column=0)
+        tk.Label(package_edit_create_frame, text="Active Flag").grid(row=7, column=0)
         self.activeflag_entry = tk.Entry(package_edit_create_frame, textvariable=self.activeflag)
-        self.activeflag_entry.grid(row=6, column=1)
+        self.activeflag_entry.grid(row=7, column=1)
 
         # entrys / combobox
         self.package_edit_combobox = ttk.Combobox(package_edit_create_frame, values=self.package_list)
@@ -208,6 +217,11 @@ class Tab4(ttk.Frame):
 
         return package_edit_create_frame
 
+    def on_show(self):
+        """Called whenever this tab becomes active"""
+        print("Refreshing Tab data")
+        self.get_package_info()
+
     def get_package_info(self) -> tuple[bool, str | None]:
         """
         get package information from dropdown combobox selector
@@ -216,6 +230,7 @@ class Tab4(ttk.Frame):
         """
         try:
             conn = None
+            items_consumed = ""
 
             # get the part_id from search/selector
             dropdown_checker = self.package_combobox.get()
@@ -268,6 +283,7 @@ class Tab4(ttk.Frame):
                                 description,
                                 items_consumed,
                                 active_flag,
+                                item_qty_consumed,
                             ) = rows[0]
 
                         # update edit/creation frame if true
@@ -276,26 +292,27 @@ class Tab4(ttk.Frame):
                         self.package_name_var.set(package_name)
                         self.description_var.set(description)
                         self.items_consumed_var.set(items_consumed)
-
+                        
                         if active_flag == 1:
                             self.activeflag_var.set("Active")
                         else:
                             self.activeflag_var.set("Inactive")
 
                 # get part_names, for package info dropdown results
-                if i == 3 and self.package_id != '-':
+                if i == 3 and self.package_id != '-' and items_consumed != "":
 
                     # cleanup returned data list > str of itm refs
                     cleaned_data = items_consumed.replace("[","").replace("]","").split(",")
-                    final_data = ",".join(f"'{item}'" for item in cleaned_data)
-
+                    final_data = ",".join(f"'{item}'" for item in cleaned_data)                    
+                    
                     # get list of item names
                     data = conn.query(sql.replace("replace1",final_data), ())
                     
                     if data[1]:
                         # join returned data into cleaned string
-                        cleaned_data = ",".join(f"'{item[0]}'" for item in data[1])
-                        
+                        cleaned_data = ",".join(f"'{item[0]}'" for item in data[1])                        
+                        cleaned_data = cleaned_data + f" (QTYs: {item_qty_consumed})"
+
                         # combine returned list
                         self.items_consumed_var.set(cleaned_data)
     
@@ -331,9 +348,17 @@ class Tab4(ttk.Frame):
         """
         try:
             conn = None
+            items_consumed = ""
+            package_id = ""
+            package_name = ""
+            description = ""
+            active_flag = 0
+            item_qty_consumed = ""
+            cleaned_items_consumed = ""
 
             # get the part_id from search/selector
             dropdown_checker = self.package_edit_combobox.get()
+            checkbox_status = self.check_var.get()
 
             if dropdown_checker != '':
                 self.package_id = dropdown_checker[0:7]                           
@@ -363,6 +388,7 @@ class Tab4(ttk.Frame):
                     self.package_name_entry.delete(0, tk.END)
                     self.description_entry.delete(0, tk.END)
                     self.items_consumed_entry.delete(0, tk.END)
+                    self.item_qty_consumed_entry.delete(0, tk.END)
                     self.activeflag_entry.delete(0, tk.END)
 
                     # if data found for search/item selector, update self data
@@ -376,21 +402,22 @@ class Tab4(ttk.Frame):
                                 description,
                                 items_consumed,
                                 active_flag,
+                                item_qty_consumed,
                             ) = rows[0]
 
-                        # update edit/creation frame if true
-                        # default = false, and Package Info frame updated
-                        cleaned_items_consumed = items_consumed.replace("[","").replace("]","")
+                            # update edit/creation frame if true
+                            # default = false, and Package Info frame updated
+                            cleaned_items_consumed = items_consumed.replace("[","").replace("]","")
 
                         self.package_id_var_f3.set(package_id)
                         self.package_name_entry.insert(0, package_name)
                         self.description_entry.insert(0, description)
-                        self.items_consumed_entry.insert(0, cleaned_items_consumed)
-
-                        if active_flag == 1:
-                            self.activeflag_entry.insert(0, "Active")
-                        else:
-                            self.activeflag_entry.insert(0, "Inactive")
+                        self.items_consumed_entry.insert(0, cleaned_items_consumed)                        
+                        self.item_qty_consumed_entry.insert(0, item_qty_consumed)
+                        
+                        self.activeflag_entry.insert(
+                            0, "Active" if active_flag == 1 else "Inactive"
+                        )
                         
                         # cleanup comobox
                         self.package_edit_combobox.set('')
@@ -404,6 +431,7 @@ class Tab4(ttk.Frame):
                     package_name = self.package_name_entry.get()
                     description = self.description_entry.get()
                     items_consumed = self.items_consumed_entry.get()
+                    item_qty_consumed = self.item_qty_consumed_entry.get()
                     active_flag = self.activeflag_entry.get()
 
                     if active_flag == "Active":
@@ -415,7 +443,8 @@ class Tab4(ttk.Frame):
                         package_name,
                         description,
                         items_consumed,
-                        active_flag
+                        active_flag,
+                        item_qty_consumed
                     ]
 
                     # check for user inputs into all boxes
@@ -430,30 +459,38 @@ class Tab4(ttk.Frame):
                         if state:
                             # edit enabled
                             items_consumed = str("[" + items_consumed + "]")
-                            conn.update(sql, (package_name, description, items_consumed, active_flag, package_id))
+                            conn.update(sql, (package_name, description, items_consumed, active_flag, item_qty_consumed, package_id))
 
                             messagebox.showinfo("Show Info",f"Item {package_name} has been updated")
 
+                            # cleanup previous inputs
+                            self.package_id_var_f3.set("-")
+                            self.package_name_entry.delete(0, tk.END)
+                            self.description_entry.delete(0, tk.END)
+                            self.items_consumed_entry.delete(0, tk.END)
+                            self.item_qty_consumed_entry.delete(0, tk.END)
+                            self.activeflag_entry.delete(0, tk.END)
+
                 # create new existing record
                 # action = True button pressed by user
-                if i == 5 and action:
+                if i == 5 and action and checkbox_status == 1:
 
                     # check the edit box is unticket (thus create new record)
                     state = self.check_var.get()
                     if not state:
 
                         items_consumed = str("[" + items_consumed + "]")
-                        conn.insert(sql, (self.next_package_id[1][0][0], package_name, description, items_consumed, active_flag))
+                        conn.insert(sql, (self.next_package_id[1][0][0], package_name, description, items_consumed, active_flag, item_qty_consumed))
 
-                    messagebox.showinfo("Show Info",f"New item {self.next_package_id[1][0][0]} , {package_name} has been created")
+                        messagebox.showinfo("Show Info",f"New item {self.next_package_id[1][0][0]} , {package_name} has been created")
 
-                    # cleanup previous inputs
-                    self.package_id_var_f3.set("-")
-                    self.package_name_entry.delete(0, tk.END)
-                    self.description_entry.delete(0, tk.END)
-                    self.items_consumed_entry.delete(0, tk.END)
-                    self.activeflag_entry.delete(0, tk.END)
-                    self.check_var.set(False)
+                        # cleanup previous inputs
+                        self.package_id_var_f3.set("-")
+                        self.package_name_entry.delete(0, tk.END)
+                        self.description_entry.delete(0, tk.END)
+                        self.items_consumed_entry.delete(0, tk.END)
+                        self.activeflag_entry.delete(0, tk.END)
+                        self.check_var.set(False)
 
             # commit & close
             conn.close(True)            
@@ -501,7 +538,16 @@ class Tab4(ttk.Frame):
             if not result:
                 messagebox.showerror("Show Error",'Input data is not correct format. "N/A" or "ITM-001,ITM002..." etc or for single item "ITM-001"')
                 raise ValueError("Input incorrect, 'N/A' or ITM list")
-            
+                        
+            get_len_var = items_consumed.split(",")
+            # item_qty_consumed may be optional in tests (variable_list length 4)
+            if len(variable_list) > 4:
+                qty_str = variable_list[4]
+                result = self.validate_int_list(qty_str, len(get_len_var))
+                if not result:
+                    messagebox.showerror("Show Error",'Input item qtys are not a number OR more qtys input than items')
+                    raise ValueError("Input item qtys field, length over items input or non-numbers input")
+
 
             return True, None
         
@@ -523,3 +569,24 @@ class Tab4(ttk.Frame):
         # validate user input
         parts = [p.strip() for p in text.split(",")]
         return all(re.fullmatch(r"ITM-\d{3}", p) for p in parts)
+
+    def validate_int_list(self, input_str: str, expected_length: int) -> bool:
+        """
+        Check if input_str is a comma-separated list of integers of expected length.
+
+        :param input_str: string input like "1,2,3"
+        :param expected_length: number of integers required
+        :return: True if valid, False otherwise
+        """
+        try:
+            # Split by comma
+            parts = input_str.split(",")
+            # Check length
+            if len(parts) != expected_length:
+                return False
+            # Check each part is an integer
+            for part in parts:
+                int(part)  # raises ValueError if not an int
+            return True
+        except ValueError:
+            return False

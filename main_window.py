@@ -80,12 +80,13 @@ class Main(tk.Tk):
 
         # access logic
         if self.access_code == 'CUS_USR':
-            #self.notebook.forget(self.tab3)
-            pass
+            self.notebook.forget(self.tab3)
+            self.notebook.forget(self.tab4)
+            self.notebook.forget(self.tab6)
+            self.notebook.forget(self.tab7)
 
-        if self.access_code == 'admin':
-            pass
-
+        if self.access_code == 'STF_USR':
+            self.notebook.forget(self.tab7)
 
     def run(self):
         """
@@ -105,9 +106,13 @@ class Main(tk.Tk):
         # Ignore the first automatic event on program start
         if self.first_event:
             self.first_event = False
+            self.last_tab = self.notebook.index("current")
             return
 
         new_tab = self.notebook.index("current")
+        tab_widget = self.notebook.nametowidget(
+            self.notebook.tabs()[new_tab]
+        )
 
         # Prompt user
         answer = messagebox.askyesno(
@@ -119,6 +124,9 @@ class Main(tk.Tk):
             # User cancelled → revert to previous tab
             self.notebook.select(self.last_tab)
             return
+
+        if hasattr(tab_widget, "on_show"):
+            tab_widget.on_show()
 
         # Accept new tab → update last_tab
         self.last_tab = new_tab

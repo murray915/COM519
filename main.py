@@ -1,13 +1,10 @@
 import main_window as mw
 import utility_functions as uf
+import login_window as lw
 
-# TODO: Booking tab
+# TODO: Booking_Staff tab
     # - create
-    # - add new booking
-    # - amend / cancel existing booking
-    # - add finance SQL view & window
-
-# TODO: triggers
+    # - Complete booking
 
 
 ##### ##### ##### ##### ##### 
@@ -16,10 +13,10 @@ import utility_functions as uf
  
 # TODO:
     # Add image to garage
-    # Add stock limitations based on STAFF login & prim_garage
     # add image to account
     # - xml import (db table type checker)
     # - application settings
+
 
 if __name__ == "__main__":
     
@@ -27,7 +24,7 @@ if __name__ == "__main__":
     # Login_process = lw.Login_Window()
     # result = Login_process.run()
 
-    # # login completed 
+    # # login completed
     # # main
     # if result:
     #     main_win = mw.Main(result[0],result[1])
@@ -35,10 +32,18 @@ if __name__ == "__main__":
 
     hello = True
 
-    if hello:        
-        test_login = ["USR-002","CUS_USR"]
+    if hello:
+        #test_login = ["USR-001","CUS_USR"] # user
+        test_login = ["USR-015","STF_USR"] # staff
+        #test_login = ["USR-016","ADMIN"] # admin
+        
+
         main_win = mw.Main(test_login[0],test_login[1])
         result = main_win.run()
 
-    else: 
-        pass
+    else:
+        data = uf.get_garagelist_details()
+
+        print(data)
+
+        #'Mechanic'

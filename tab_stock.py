@@ -12,6 +12,7 @@ class Tab3(ttk.Frame):
         super().__init__(parent, style=style_name)
 
         self.curr_user = curr_user
+        self.prime_garage = uf.validate_primary_garage_id(curr_user, True)
         self.tab_name = "Stock"
         self.controller = controller
 
@@ -288,7 +289,13 @@ class Tab3(ttk.Frame):
                 pass
 
             return False, str(err)
-        
+
+    def on_show(self):
+        """Called whenever this tab becomes active"""
+        print("Refreshing Tab data")
+        self.get_stock_item_info()
+        self.get_stock_garage_info()
+
     def get_stock_item_info(self) -> tuple[bool, str | None]:
         """
         get stock information from part_id selector
@@ -424,7 +431,9 @@ class Tab3(ttk.Frame):
                 raise ValueError("Search vs Update conflict")
             
             if (dropdown_checker_garage == '' and dropdown_checker_item != '') or dropdown_checker_garage != '' and dropdown_checker_item == '':
-                messagebox.showerror("Show Error","Only one of the required inputs completed. Please ensure garage and items are selected.")
+                messagebox.showerror("Show Error","Only one of the required inputs completed. Please ensure garage and items are selected. If no Garage is selectable, please ensure primary garage is input into your account")
+                self.item_combobox_garages.set('')
+                self.stock_item_combobox.set('')
                 raise ValueError("Search input failure.")
                         
             # get the part_id from search/selector
@@ -455,13 +464,26 @@ class Tab3(ttk.Frame):
 
                     if all_garage_data:
                         output_list = []
+                        temp_output_list = []
 
                         # clean data intp list
                         for i in all_garage_data[1]:
-                            output_list.append(i[0])
+                            temp_output_list.append(i[0])
                         
-                        # add to self var
-                        self.list_garage_ids = output_list
+                        # add to self var, remove all non-prime garages
+                        if self.prime_garage == 'N/A':
+                            self.list_garage_ids = None
+                        else:
+
+                            # add to output list only primary garage
+                            for i in temp_output_list:
+                                sub = i[0:8]
+
+                                if sub == self.prime_garage:
+                                    output_list.append(i)
+
+                            # update self var
+                            self.list_garage_ids = output_list
             
                     # reset the combobox list on datarefresh
                     self.item_combobox_garages['values'] = self.list_garage_ids
@@ -654,12 +676,9 @@ class Tab3(ttk.Frame):
 
             self.upload_file = filepath
 
-            if "jpg" in filepath:
-                output = ifc.upload_jpg_files_to_db(self.image_item_id.get(), filepath)
-            else: 
-                output = ifc.upload_tk_image_to_db(self.image_item_id.get(), filepath)
+            output = ifc.upload_image_to_db(self.image_item_id.get(), filepath)
 
-            if type(output) == tuple:
+            if not output[0]:
                 raise ValueError(output[1])
 
             messagebox.showinfo("show info",f"Item image uploaded successfully to {self.image_item_id.get()}")

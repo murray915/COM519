@@ -46,15 +46,15 @@ class Tab7(ttk.Frame):
         # get data for frame contructions
         self.get_db_data()
 
-        # frame  - Password Reseter
+        # frame 1 - Password Reseter
         # row 0, col 0
         self.password_reseter_frame = self.frame_1()
 
-        # frame  - Database XML Backup Creator
+        # frame 2 - Database XML Backup Creator
         # row 1, col 0
         self.xml_database_backup = self.frame_2()
 
-        # frame  - XML Importer
+        # frame 3 - XML Importer
         # row 1, col 1
         self.xml_importer = self.frame_3()
 
@@ -87,10 +87,19 @@ class Tab7(ttk.Frame):
         self.access_code_entry = tk.Entry(password_reseter_frame, textvariable=self.access_code_var, width=40)
         self.access_code_entry.grid(row=4, column=1, columnspan=2, sticky="we")
 
+        self.staff_id_var = tk.StringVar(value=self.username)
+        tk.Label(password_reseter_frame, text="Staff ID").grid(row=5, column=0)
+        tk.Label(password_reseter_frame, textvariable=self.staff_id_var).grid(row=5, column=1)
+
+        self.staff_type_var = tk.StringVar()
+        tk.Label(password_reseter_frame, text="Staff Type").grid(row=6, column=0)
+        self.staff_type_entry = tk.Entry(password_reseter_frame, textvariable=self.staff_type_var, width=40)
+        self.staff_type_entry.grid(row=6, column=1, columnspan=2, sticky="we")
+
         self.active_flag_var = tk.StringVar()
-        tk.Label(password_reseter_frame, text="Active Flag").grid(row=5, column=0)
+        tk.Label(password_reseter_frame, text="Active Flag").grid(row=7, column=0)
         self.active_flag_entry = tk.Entry(password_reseter_frame, textvariable=self.active_flag_var, width=40)
-        self.active_flag_entry.grid(row=5, column=1, columnspan=2, sticky="we")
+        self.active_flag_entry.grid(row=7, column=1, columnspan=2, sticky="we")
 
         # entrys / combobox
         self.account_combobox = ttk.Combobox(password_reseter_frame, values=self.account_list)
@@ -104,6 +113,9 @@ class Tab7(ttk.Frame):
 
         pw_requirement_details = tk.Button(password_reseter_frame,text='Password Requirements',command=self.pw_requirements_printout)
         pw_requirement_details.grid(row=3, column=3)
+
+        staff_id_type_details = tk.Button(password_reseter_frame,text='Staff ID Requirements',command=self.staff_id_printout)
+        staff_id_type_details.grid(row=6, column=3)
 
         accesscode_details = tk.Button(password_reseter_frame,text='Accesscode List',command=self.accesscode_printout)
         accesscode_details.grid(row=4, column=3)
@@ -185,6 +197,11 @@ class Tab7(ttk.Frame):
 
         return xml_importer
 
+    def on_show(self):
+        """Called whenever this tab becomes active"""
+        print("Refreshing Tab data")
+        self.user_updater_data(False)
+
     def user_updater_data(self, update: bool) -> tuple[bool, str | None]:
         """
         update username/password or access code for selected user
@@ -197,13 +214,14 @@ class Tab7(ttk.Frame):
             conn = None
             output_msg = []
             pw_update = False
+            staff_add = False
 
             # get the account details from search/selector
             dropdown_checker = self.account_combobox.get()
 
             # if account has been selected. Generate backing data
             if dropdown_checker != '':
-                self.edit_user_id = dropdown_checker[0:7]  
+                self.edit_user_id = dropdown_checker[0:7]
 
             # db connection & sql script get
             conn = uf.get_database_connection()
@@ -239,6 +257,8 @@ class Tab7(ttk.Frame):
                     self.new_pass_entry.delete(0, tk.END)
                     self.account_combobox.set('')
                     self.access_code_entry.delete(0, tk.END)
+                    self.staff_id_var.set('')
+                    self.staff_type_entry.delete(0, tk.END)
                     self.active_flag_entry.delete(0, tk.END)
 
                     # query db
@@ -253,7 +273,9 @@ class Tab7(ttk.Frame):
                                 user_id,
                                 access_code,
                                 active_flag,
-                                username
+                                username,
+                                staff_id,
+                                staff_type,
                             ) = rows[0]
 
                         # update edit/creation frame if true
@@ -261,6 +283,13 @@ class Tab7(ttk.Frame):
                         self.username_var.set(username)
                         self.new_pass_entry.insert(0,'')
                         self.access_code_entry.insert(0,access_code)
+                        
+                        if staff_id is None or staff_id == '':
+                            self.staff_id_var.set('-')
+                            self.staff_type_entry.insert(0, '-')
+                        else:
+                            self.staff_id_var.set(staff_id)
+                            self.staff_type_entry.insert(0, staff_type)
 
                         if active_flag == 1:
                             self.active_flag_entry.insert(0,"Active")
@@ -293,6 +322,18 @@ class Tab7(ttk.Frame):
                     new_password = self.new_pass_entry.get().strip()
                     accesscode = self.access_code_entry.get()
                     activeflag = self.active_flag_entry.get()
+                    staff_type = self.staff_type_entry.get()
+
+                    # add staff id
+                    if staff_type != '-':
+                        staff_add = True
+                        result = uf.validate_staff_id(edit_user_id, staff_type, True)
+                        
+                        # check & output results
+                        if result[0]:
+                            output_msg.append("Staff Details added for account")
+                        else:
+                            output_msg.append(f"Error on staff creation : {result[1]}")
 
                     # check if new password has been input
                     if new_password:
@@ -329,8 +370,8 @@ class Tab7(ttk.Frame):
 
                     # check if any change req.
                     # if not, alert user
-                    if self.curr_access_code == accesscode and self.curr_active_flag == activeflag and pw_update == False:
-                        messagebox.showinfo("Account Update", f"There is no change required on this account. Please ensure there is an update to a password/accesscode or activeflag.")
+                    if self.curr_access_code == accesscode and self.curr_active_flag == activeflag and pw_update == False and staff_add == False:
+                        messagebox.showinfo("Account Update", f"There is no change required on this account. Please ensure there is an update to a password/accesscode/activeflag/Staff Type.")
 
                 # update password into login_details table         
                 if i == 8 and pw_update:
@@ -349,7 +390,8 @@ class Tab7(ttk.Frame):
                     self.active_flag_entry.delete(0, tk.END)
 
                     output_msg.append("Password for account updated")
-            
+
+
             # if no errors found, pass
             if output_msg:
                 messagebox.showinfo("Account Update", "\n".join(output_msg))
@@ -556,6 +598,19 @@ class Tab7(ttk.Frame):
             print_text[0], 
             print_text[1]
             )
+
+    def staff_id_printout(self):
+        """
+        Docstring for xml_requirements_printout
+        
+        :param self
+        """
+        print_text = uf.staff_id_requirements()
+
+        messagebox.showinfo(
+            print_text[0], 
+            print_text[1]
+            )  
 
     def select_file(self) -> tuple[bool, str | None]:
         """"
