@@ -29,7 +29,10 @@ class Tab7(ttk.Frame):
         self.get_key()
 
         ttk.Label(self, text="This is the Admin Funct Tab" \
-        "\n> To change a users password or access code. Please select the account from the dropdown. Then input the new password/accesscode/activeflag. Active Flag has to be Active/Inactive, accesscode from respective lookup & password hit the rules."
+        "\n> To change a users password or access code. Please select the account from the dropdown. Then input the new password/accesscode/activeflag. Active Flag has to be Active/Inactive, accesscode from respective lookup & password hit the rules." \
+        "\n> To create a database update in xml, unselect and database table that is not required. Then press the 'create backup' button. This will create the xml files into the Data Folder." \
+        "\n> To create a csv export for the audit table, press the 'Export Audittable into CSV' button to create the csv in the /data/ folder" \
+        "\n> To import xml data for a fast update into a table, please create the xml file following the requirements (press requirements button for details), then press the 'upload xml file' button."
         ).pack(pady=20)
 
         # general params
@@ -169,6 +172,9 @@ class Tab7(ttk.Frame):
         # buttons
         create_db_backup = ttk.Button(xml_database_backup, text='Create backup', command=self.create_db_backup)
         create_db_backup.grid(row=2, column=0, pady=10, sticky="w")
+
+        create_csv_audittable = ttk.Button(xml_database_backup, text='Export Audittable into CSV', command=self.export_audit_table)
+        create_csv_audittable.grid(row=3, column=0, pady=10, sticky="w")
 
         return xml_database_backup
 
@@ -648,4 +654,51 @@ class Tab7(ttk.Frame):
 
         except Exception as err: # Exception Block. Return data to user & False
             print(f"\n\n** Unexpected {err=}, {type(err)=} ** \n\n")  
+            return False, str(err)
+        
+    def export_audit_table(self):
+        """
+        Docstring for get_db_data
+                        export csv into /data/ folder
+        
+        :param self: pulled data
+        :return: True for success, False & errorstring for failure
+        :rtype: tuple[bool, str | None]
+        """
+        try:        
+
+            # env params
+            conn = None
+            import csv
+            
+            # db connection & sql script get
+            conn = uf.get_database_connection()
+            data = conn.query("SELECT * FROM audit_table")
+
+            header = data[0]
+
+            print(header)
+
+            with open("./data/audit_table_export.csv", "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                
+                # Write header
+                writer.writerow(header)
+                
+                # Write all data rows
+                writer.writerows(data[1])  # no loop needed
+
+
+            # commit & close
+            conn.close(True)
+
+            return True, None
+
+        except Exception as err:
+            print(f"Unexpected error: {err}, type={type(err)}")
+            if conn:
+                conn.close()
+            else:
+                pass
+
             return False, str(err)

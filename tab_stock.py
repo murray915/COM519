@@ -492,6 +492,7 @@ class Tab3(ttk.Frame):
 
                 # get stock levels for garage_id & item_id
                 if i == 2 and (dropdown_checker_garage != '' and dropdown_checker_item != ''):
+                    
                     # search params
                     sql_garage_id = f'stocklevel_{garage_id}'
                     sql = sql.replace("replace1", sql_garage_id)

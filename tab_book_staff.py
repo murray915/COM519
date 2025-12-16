@@ -11,14 +11,18 @@ class Tab8(ttk.Frame):
 
         self.curr_user = curr_user
         self.garage_id = None
+        self.prime_garage = uf.validate_primary_garage_id(curr_user, True)
         
         self.tab_name = "Complete Bookings"
         self.controller = controller
+        self.booking_complete_status = '-'
         
         ttk.Label(self, text="This is the Booking Completion Tab" \
-        "\n> This booking table is populated based on the user (staff), primary garage. To change / view other garages, please update user account."
+        "\n This booking table is populated based on the user (staff), primary garage. To view other garages, please update user account's primary garage" \
+        "\n>To change the date of a booking, update the date in the box (from today onwards), and press 'Change Booking Date'."
+        "\n>To Cancel the booking, press the 'Cancel Booking' button, this will close the booking."
+        "\n>To Complete the booking, Update the payment Method (if required, to 'cash' or 'membership'), then add the Net, Vat and Gross totals and press the 'Complete Booking' button, this will close the booking completing the transaction."
         ).pack(pady=20)
-
 
         # general params
         self.frame = tk.Frame(self)
@@ -58,9 +62,9 @@ class Tab8(ttk.Frame):
         self.tree = ttk.Treeview(
             table_frame,
             columns=(
-                "Login Name", "Booking Ref", "Date of Booking", "Garage Name",
-                "Customer Vehicle Reg", "Package Name", "Payment Method/Status", "Garage email", "Garage Phone Number",
-                "Garage Contact Member of Staff"
+                "Garage ID", "Garage Name", "Booking Ref", "Date of Booking",
+                "Customer Vechicle Reg", "Package", "Items Consumed", "Payment Method",
+                "Status", "Total Paid (Exc VAT)", "Total VAT", "Total Paid (Inc VAT)"
             ),
             show="headings"
         )
@@ -85,7 +89,7 @@ class Tab8(ttk.Frame):
         table_frame.grid_columnconfigure(0, weight=1)
 
         # create field frame
-        fields_frame = tk.Frame(booking_data_user_form)
+        fields_frame = tk.Frame(booking_data_staff_form)
         fields_frame.grid(row=1, column=0, sticky="nsew", pady=(10, 0))
 
         # config label & entry columns within frame
@@ -94,35 +98,39 @@ class Tab8(ttk.Frame):
 
         # entrees
         # for edit/cancel 
-        self.login_name_var     = tk.StringVar()
-        self.booking_ref_var    = tk.StringVar()
-        self.date_booking_var   = tk.StringVar()
-        self.garage_name_var    = tk.StringVar()
-        self.car_reg_var        = tk.StringVar()
-        self.package_var        = tk.StringVar()
-        self.paymethod_Status   = tk.StringVar()
-        self.garage_email       = tk.StringVar()
-        self.garage_no          = tk.StringVar()
-        self.garage_contact     = tk.StringVar()
+        self.garage_ID_var                = tk.StringVar()
+        self.garage_name_var              = tk.StringVar()
+        self.booking_ref_var              = tk.StringVar()
+        self.date_of_booking_var          = tk.StringVar()
+        self.customer_vechicle_reg_var    = tk.StringVar()
+        self.Package_var                  = tk.StringVar()
+        self.items_consumed_var           = tk.StringVar()
+        self.paymentmethod_var            = tk.StringVar()
+        self.status_var                   = tk.StringVar()
+        self.total_net_var                = tk.StringVar()
+        self.total_VAT_var                = tk.StringVar()
+        self.total_gross_var              = tk.StringVar()
+        self.booking_complete_status_var  = tk.StringVar()
 
         # label params
         # for edit/cancel
         labels = [
-            "Login Name :", "Booking Ref :", "Date of Booking :", "Garage Name :",
-            "Customer Vehicle Reg :", "Package Name :", "Payment Method/Status :", "Garage email :", "Garage Phone Number :",
-            "Garage Contact Member of Staff : "
+                "Garage ID :", "Garage Name :", "Booking Ref :", "Date of Booking :",
+                "Customer Vechicle Reg :", "Package :", "Items Consumed :", "Payment Method :",
+                "Status :", "Total Paid (Exc VAT) :", "Total VAT :", "Total Paid (Inc VAT) :"
         ]
 
         # set fields to be edit/non-edit
         # for edit/cancel
-        NO_ENTRY_FIELDS = {0, 1, 3, 5, 6, 7, 8, 9}
+        NO_ENTRY_FIELDS = {0, 1, 2, 4, 5, 6, 8}
 
         # vars
         # for edit/cancel
         vars = [
-            self.login_name_var, self.booking_ref_var, self.date_booking_var,
-            self.garage_name_var, self.car_reg_var, self.package_var, self.paymethod_Status,
-            self.garage_email, self.garage_no, self.garage_contact
+            self.garage_ID_var,self.garage_name_var,self.booking_ref_var,
+            self.date_of_booking_var,self.customer_vechicle_reg_var,self.Package_var,
+            self.items_consumed_var,self.paymentmethod_var,self.status_var,
+            self.total_net_var,self.total_VAT_var,self.total_gross_var
         ]
 
         start_row = 2
@@ -138,49 +146,16 @@ class Tab8(ttk.Frame):
             else:
                 tk.Entry(fields_frame, textvariable=var).grid(row=i, column=1, sticky="w")
 
-        # setup vars
-        self.vehicle_list           = None
-        self.package_list           = None
-        self.garage_list            = None
-        self.new_referral_txt_var       = tk.StringVar()
-        self.new_date_booking_var   = tk.StringVar()
-
-        new_booking_col = 5
-
-        # Create New Booking Date
-        tk.Label(fields_frame, text="New Booking Date :").grid(row=start_row, column=new_booking_col, sticky="e", pady=3)
-        tk.Entry(fields_frame, textvariable=self.new_date_booking_var).grid(row=start_row, column=new_booking_col + 1, sticky="w")
-        
-        tk.Label(fields_frame, text="Referral From (online/person...) :").grid(row=start_row + 1, column=new_booking_col, sticky="e", pady=3)
-        tk.Entry(fields_frame, textvariable=self.new_referral_txt_var).grid(row=start_row + 1, column=new_booking_col + 1, sticky="w")
-
-        # Dropdown Labels
-        tk.Label(fields_frame, text="Dropdown List for Vehicles :").grid(row=start_row + 2, column=new_booking_col, sticky="e")
-        tk.Label(fields_frame, text="Dropdown List for Garages :").grid(row=start_row + 3, column=new_booking_col, sticky="e")
-        tk.Label(fields_frame, text="Dropdown List for Packages :").grid(row=start_row + 4, column=new_booking_col, sticky="e")
-
-        # Configure expanding columns for new booking inputs
-        fields_frame.grid_columnconfigure(new_booking_col + 1, weight=1)
-        fields_frame.grid_columnconfigure(new_booking_col + 2, weight=1)
-
-        # Comboboxes
-        self.vehicles_combobox = ttk.Combobox(fields_frame, values=self.vehicle_list)
-        self.vehicles_combobox.grid(row=start_row + 2, column=new_booking_col + 1, columnspan=2, sticky="ew")
-
-        self.garage_combobox = ttk.Combobox(fields_frame, values=self.garage_list)
-        self.garage_combobox.grid(row=start_row + 3, column=new_booking_col + 1, columnspan=2, sticky="ew")
-
-        self.package_combobox = ttk.Combobox(fields_frame, values=self.package_list)
-        self.package_combobox.grid(row=start_row + 4, column=new_booking_col + 1, columnspan=2, sticky="ew")
-
         # buttons
-        ttk.Button(fields_frame,text="Save Changes",command=lambda: self.exist_booking_actions("edit")).grid(row=10, column=3, columnspan=2, pady=10)
-        ttk.Button(fields_frame,text="Request Cancellation",command=lambda: self.exist_booking_actions("cancel")).grid(row=9, column=3, columnspan=2, pady=10)
-        ttk.Button(fields_frame,text="Create Booking",command=self.create_booking).grid(row=9, column=6, columnspan=2, pady=10)
+        ttk.Button(fields_frame,text="Change Booking Date",command=lambda: self.exist_booking_actions("edit")).grid(row=5, column=3, columnspan=2, pady=10)
+        ttk.Button(fields_frame,text="Cancel Booking",command=lambda: self.exist_booking_actions("cancel")).grid(row=9, column=3, columnspan=2, pady=10)
+        
+        tk.Label(fields_frame, textvariable=self.booking_complete_status_var).grid(row=14, column=3, sticky="w")
+        ttk.Button(fields_frame,text="Complete Booking",command=self.complete_booking).grid(row=15, column=3, columnspan=2, pady=10)
 
         self.tree.bind("<<TreeviewSelect>>", self.on_row_selected)
 
-        return booking_data_user_form
+        return booking_data_staff_form
     
     def load_table_data(self) -> tuple[bool, str | None]:
         """
@@ -199,103 +174,30 @@ class Tab8(ttk.Frame):
 
             # db connection & sql script get
             conn = uf.get_database_connection()
-            sql = uf.load_sql_file("booking_data_scripts.sql")
+            sql = uf.load_sql_file("booking_staff_scripts.sql")
             sql_statements = sql.replace("\n", "").split(";")
 
             # enact sql scripts
             for i, sql in enumerate(sql_statements):
 
-                # get user_name
-                if i == 0:
+                # get next transaction id
+                if i == 1:
                     next_transaction_id = conn.query(sql, ())
                     next_transaction_id = next_transaction_id[1][0][0]
 
                 # get table data
-                # future bookings
-                if i == 3:
-                    rows = conn.query(sql, (user_name[1][0][0],))
+                # current open bookings
+                if i == 0:
+                    rows = conn.query(sql, (self.prime_garage,))
 
-            # check for return data
-            if rows:
-                headers = rows[0]         # headers from sql
-                data_rows = rows[1]       # data from sql, list of rows
+                    # check for return data
+                    if rows:
+                        headers = rows[0]         # headers from sql
+                        data_rows = rows[1]       # data from sql, list of rows
 
-                for row in data_rows: # get data by row
-                    self.tree.insert("", "end", values=row) 
-
-            ########### get all dropdown boxes ##################
-            sql = uf.load_sql_file("package_scripts.sql")
-            sql_statements = sql.replace("\n", "").split(";")
-
-            # enact sql scripts
-            for i, sql in enumerate(sql_statements):
-
-                # get package info for dropdown
-                if i == 1:
-                    all_package_data = conn.query(sql, ())
-
-                    if all_package_data:
-                        output_list = []
-
-                        # clean data into list
-                        for i in all_package_data[1]:
-                            output_list.append(i[0])
-                        
-                        # add to self var
-                        self.package_list = output_list
-            
-                    # reset the combobox list on datarefresh
-                    self.package_combobox['values'] = self.package_list
-                    self.package_combobox.set('')
-
-            sql = uf.load_sql_file("vehicle_scripts.sql")
-            sql_statements = sql.replace("\n", "").split(";")
-
-            # enact sql scripts
-            for i, sql in enumerate(sql_statements):
-
-                # get vehicle info for dropdown
-                if i == 1:
-                    cus_acc = uf.validate_customer_account(self.curr_user, False)
-                    all_veh_data = conn.query(sql, (cus_acc,))
-
-                    if all_veh_data:
-                        output_list = []
-
-                        # clean data intp list
-                        for i in all_veh_data[1]:
-                            output_list.append(i[0])
-                        
-                        # add to self var
-                        self.vehicle_list = output_list
-            
-                    # reset the combobox list on datarefresh
-                    self.vehicles_combobox['values'] = self.vehicle_list
-                    self.vehicles_combobox.set('')
-
-            sql = uf.load_sql_file("garage_scripts.sql")
-            sql_statements = sql.replace("\n", "").split(";")
-        
-            # enact sql scripts
-            for i, sql in enumerate(sql_statements):
-
-                # get all garage_id data for dropdown
-                if i == 1:
-                    all_garage_data = conn.query(sql, ())
-
-                    if all_garage_data:
-                        output_list = []
-
-                        # clean data intp list
-                        for i in all_garage_data[1]:
-                            output_list.append(i[0])
-                        
-                        # add to self var
-                        self.garage_list = output_list
-            
-                    # reset the combobox list on datarefresh
-                    self.garage_combobox['values'] = self.garage_list
-                    self.garage_combobox.set('')
+                        for row in data_rows: # get data by row
+                            self.tree.insert("", "end", values=row)
+                                # get part_names, for package info dropdown results
 
             # commit & close
             conn.close(True)            
@@ -311,7 +213,7 @@ class Tab8(ttk.Frame):
 
             return False, str(err)
 
-    def on_row_selected(self, event):
+    def on_row_selected(self, event):        
         """
         Docstring for on_row_selected
         
@@ -324,15 +226,457 @@ class Tab8(ttk.Frame):
 
         values = self.tree.item(selected, "values")
 
-        self.login_name_var.set(values[0])
-        self.booking_ref_var.set(values[1])
-        self.date_booking_var.set(values[2])
-        self.garage_name_var.set(values[3])
-        self.car_reg_var.set(values[4])
-        self.package_var.set(values[5])
-        self.paymethod_Status.set(values[6])
-        self.garage_email.set(values[7])
-        self.garage_no.set(values[8])
-        self.garage_contact.set(values[9])
+        self.garage_ID_var.set(values[0])
+        self.garage_name_var.set(values[1])
+        self.booking_ref_var.set(values[2])
+        self.date_of_booking_var.set(values[3])
+        self.customer_vechicle_reg_var.set(values[4])
+        self.Package_var.set(values[5])
+        self.items_consumed_var.set(values[6])
+        self.paymentmethod_var.set(values[7])
+        self.status_var.set(values[8])
+        self.total_net_var.set(values[9])
+        self.total_VAT_var.set(values[10])
+        self.total_gross_var.set(values[11])
 
-        self.selected_booking_ref = values[1]
+        self.selected_booking_ref = values[2]
+
+        self.get_booking_completion_check()
+        self.booking_complete_status_var.set(self.booking_complete_status)
+
+    def on_show(self):
+        """Called whenever this tab becomes active"""
+        print("Refreshing Tab data")
+        self.load_table_data()
+
+    def get_booking_completion_check(self):
+
+        conn = None
+        stock_stock_check = True
+        qtys_per_item = []
+        stock_check_dict = {}
+        outmsg = []
+
+        # db connection & sql script get
+        conn = uf.get_database_connection()
+        sql = uf.load_sql_file("booking_staff_scripts.sql")
+        sql_statements = sql.replace("\n", "").split(";")
+
+        # enact sql scripts (3 total)
+        for i, sql in enumerate(sql_statements):
+
+            # get item_id list from booking
+            if i == 5:
+                
+                data = conn.query(sql, (self.booking_ref_var.get(),))
+
+                # check for N/A on items consumed
+                if data[1][0][0] == 'N/A':
+                    
+                    # no stock update required
+                    stock_stock_check = False
+
+                else:
+                    # cleanup returned data list > str of itm refs
+                    data_str_item_comsumed = data[1][0][0]
+                    data_str_item_QTY_comsumed = data[1][0][1]
+                    self.booking_veh = data[1][0][2]
+
+                    # cleanup data into string values
+                    cleaned_data = data_str_item_comsumed.replace("[","").replace("]","").split(",")
+                    self.part_number_list = cleaned_data
+                    final_data = ",".join(f"'{item}'" for item in cleaned_data)
+                    qtys_per_item = data_str_item_QTY_comsumed.split(",")
+                    self.part_number_qty_list = qtys_per_item
+
+            # get the stock levels for items and garage (if items are within package)
+            if i == 6 and stock_stock_check:
+                
+                # search params
+                # garage id formatting for db
+                garage_id = self.garage_ID_var.get().replace("-","_")
+                sql_garage_id = f'stocklevel_{garage_id}'
+                sql = sql.replace("replace1", sql_garage_id)
+
+                # update sql with part_id in list values
+                sql = sql.replace("replace2",final_data)
+
+                # get stock QTY for garage by item
+                data = conn.query(sql, ())
+
+                # setup dictionary for item & qty current stock levels
+                self.curr_stock_level_dict = {}
+                for i, key in enumerate(data[1]):
+                    self.curr_stock_level_dict[key[0]] = int(key[1])
+
+                # setup dictionary for qty check
+                for i, key in enumerate(cleaned_data):
+                    stock_check_dict[key] = int(qtys_per_item[i])
+
+                # cycle through items against dictionary
+                for i in data[1]:
+
+                    stock_level = stock_check_dict[i[0]]
+
+                    # check in dict of stocks if current level is sufficient
+                    if stock_level > i[1]:
+                        outmsg.append(f"Stock for {i[0]} is insufficient to complete booking")
+
+                # add stock checks to var if fails found
+                if not outmsg:
+                    self.booking_complete_status = 'Sufficient stock to Complete'
+                else:
+                    self.booking_complete_status = ",".join(outmsg)
+        
+        conn.close()
+
+    def exist_booking_actions(self, action: str) -> tuple[bool, str | None]:
+        """
+        Docstring for exist_booking_actions
+        
+        :param self: pull from self params/funcs
+        :param action: input string, edit or cancel actions support
+        :type action: str
+        :return: True for succes / False for fail. List of errors (or empty list)
+        :rtype: tuple [bool, str | None]
+        """
+        # Ensure a row was selected
+        if not hasattr(self, "selected_booking_ref"):
+            messagebox.showwarning("No row selected", "Please select a booking to update.")
+            return
+
+        try:
+            conn = None
+           
+            # db connection & sql script get
+            conn = uf.get_database_connection()
+            sql = uf.load_sql_file("booking_staff_scripts.sql")
+            sql_statements = sql.replace("\n", "").split(";")
+
+            # enact sql scripts (3 total)
+            for i, sql in enumerate(sql_statements):
+
+                # update existing booking
+                if i == 2 and action in ['edit','cancel']:
+
+                    # Build SQL update query
+                    fixed_date = self.normalise_date(self.date_of_booking_var.get())        
+                    params = (
+                        fixed_date
+                    )
+
+                    result = self.check_user_inputs_edit(params, False)
+
+                    # check if inputs are correct
+                    if not result:
+
+                        # update param with veh_id & reformat date
+                        booking_date = datetime.strptime(self.date_of_booking_var.get(), "%d/%m/%Y")
+                        booking_date_str = booking_date.strftime("%Y-%m-%d")
+
+                        params = (
+                            booking_date_str,
+                            self.selected_booking_ref
+                            )   
+
+                        # complete edit, else run cancel
+                        if action == 'edit':
+
+                            # update db
+                            conn.update(sql, params)
+
+                            # cleanup 
+                            self.garage_ID_var.set('')
+                            self.garage_name_var.set('')
+                            self.booking_ref_var.set('')
+                            self.date_of_booking_var.set('')
+                            self.customer_vechicle_reg_var.set('')
+                            self.Package_var.set('')
+                            self.items_consumed_var.set('')
+                            self.paymentmethod_var.set('')
+                            self.status_var.set('')
+                            self.total_net_var.set('')
+                            self.total_VAT_var.set('')
+                            self.total_gross_var.set('')
+
+                    else:
+                        # pass error back to user/print
+                        raise ValueError(result)
+
+                # update existing booking
+                if i == 3 and action == "cancel":
+                    
+                    # update db
+                    conn.update(sql, (self.selected_booking_ref,))
+
+                    # cleanup 
+                    self.garage_ID_var.set('')
+                    self.garage_name_var.set('')
+                    self.booking_ref_var.set('')
+                    self.date_of_booking_var.set('')
+                    self.customer_vechicle_reg_var.set('')
+                    self.Package_var.set('')
+                    self.items_consumed_var.set('')
+                    self.paymentmethod_var.set('')
+                    self.status_var.set('')
+                    self.total_net_var.set('')
+                    self.total_VAT_var.set('')
+                    self.total_gross_var.set('')
+
+            messagebox.showinfo("Saved", "Booking updated successfully.")
+            
+            # close & commit
+            conn.close(True)
+
+            # Reload table
+            self.load_table_data()
+
+            return True, None
+
+        except Exception as err:
+            print(f"Unexpected error: {err}, type={type(err)}")
+            messagebox.showerror("Error", f"Failed to update booking:\n{err}")
+            if conn:
+                conn.close()
+            else:
+                pass
+            return False, err
+
+    def complete_booking(self) -> tuple[bool, str | None]:
+        """
+        Docstring for exist_booking_actions
+        
+        :param self: pull from self params/funcs
+        :return: True for succes / False for fail. List of errors (or empty list)
+        :rtype: tuple [bool, str | None]
+        """
+        # Ensure a row was selected
+        if not hasattr(self, "selected_booking_ref"):
+            messagebox.showwarning("No row selected", "Please select a booking to update.")
+            return
+
+        try:
+            conn = None
+            sql_vars = []
+            outmsg = []
+
+            # check if stock levels are sufficient
+            self.get_booking_completion_check()                   
+            if self.booking_complete_status != 'Sufficient stock to Complete':
+                outmsg.append("Stock Levels insufficient. Review required")
+
+            # check payment method input valid
+            pay_method = self.paymentmethod_var.get()
+            if pay_method.lower() not in ["card","cash","membership"]:
+                outmsg.append("Payment method needs to be cash/membership/card")
+
+            var_list = [self.total_net_var.get().replace("£",""),self.total_VAT_var.get().replace("£",""),self.total_gross_var.get().replace("£","")]
+            
+            if self.validate_float_list(",".join(var_list)):
+                # Convert once to floats
+                net, vat, gross = [float(v) for v in var_list]
+
+                # Check positive
+                if net <= 0 or vat <= 0 or gross <= 0:
+                    outmsg.append("Payment values Net/VAT/Gross must be positive (> £0)")
+
+                # Check Net + VAT = Gross (allow small rounding error)
+                elif abs((net + vat) - gross) > 0.001:
+                    outmsg.append("Payment values Net + VAT do not equal Gross")
+                    
+            else:
+                outmsg.append("Value input into one of the Payment Values (net/vat/gross) are not ")
+
+            # if bad inputs, error and return to user
+            if outmsg:
+                #messagebox.showerror("Validation Error", "\n".join(outmsg))
+                raise ValueError(outmsg)
+
+            # db connection & sql script get
+            conn = uf.get_database_connection()
+            sql = uf.load_sql_file("booking_staff_scripts.sql")
+            sql_statements = sql.replace("\n", "").split(";")
+
+            # enact sql scripts (3 total)
+            for i, sql in enumerate(sql_statements):
+                
+                # get next id
+                if i == 1:
+
+                    # get next id
+                    data = conn.query(sql, ())
+                    self.next_transaction_id = data[1][0][0]
+
+                    # generate the transaction VALUES for sql
+                    for i, _ in enumerate(self.part_number_list):
+
+                        # get item & QTY consumed
+                        item_ref = self.part_number_list[i]
+                        qty_consumed = self.part_number_qty_list[i]
+                        
+                        # collect sql update VALUES
+                        sql_vars.append((                            
+                            self.booking_ref_var.get(),
+                            self.booking_veh,
+                            item_ref,
+                            int(qty_consumed)                            
+                        ))
+
+                    # update sql_vars > tuple list for sql inc. transaction ID increasing
+                    start_index = int(self.next_transaction_id[-3:])
+                    sql_params = []
+                    for i, row in enumerate(sql_vars):
+                        tact_number = f"TACT-{start_index + i:03d}"
+                        sql_params.append((tact_number,) + row)
+
+                # update booking with values & paid complete
+                if i == 7:
+
+                    sql_values = [net, vat, gross,self.booking_ref_var.get()]
+                    conn.update(sql, sql_values)
+
+                # insert into transactions table
+                if i == 8:
+
+                    values_str = ", ".join(
+                        str(t) for t in sql_params
+                    )
+
+                    sql = sql.replace("replace",values_str)
+                    conn.insert(sql, ())
+
+                # update stock levels
+                if i == 9:
+
+                    # get garage_id for sql
+                    garage_id = self.garage_ID_var.get().replace("-","_")
+                    sql_garage_id = f'stocklevel_{garage_id}'
+                    sql = sql.replace("replace", sql_garage_id)
+
+                    # update each item for transaction records
+                    for i, item in enumerate(self.part_number_list):
+
+                        # get current stock
+                        curr_stock_level = self.curr_stock_level_dict[item]
+
+                        # get item & qty params
+                        item_ref = self.part_number_list[i]
+                        qty_consumed = self.part_number_qty_list[i]
+
+                        # cal new stock level
+                        new_stock_level = int(curr_stock_level) - int(qty_consumed)
+
+                        # update db
+                        conn.update(sql, (int(new_stock_level),item_ref))
+
+                    # cleanup 
+                    self.garage_ID_var.set('')
+                    self.garage_name_var.set('')
+                    self.booking_ref_var.set('')
+                    self.date_of_booking_var.set('')
+                    self.customer_vechicle_reg_var.set('')
+                    self.Package_var.set('')
+                    self.items_consumed_var.set('')
+                    self.paymentmethod_var.set('')
+                    self.status_var.set('')
+                    self.total_net_var.set('')
+                    self.total_VAT_var.set('')
+                    self.total_gross_var.set('')
+
+
+            messagebox.showinfo("Info", "Booking Completed successfully.")
+
+            # close & commit
+            conn.close(True)
+
+            # Reload table
+            self.load_table_data()
+
+            return True, None
+
+        except Exception as err:
+            print(f"Unexpected error: {err}, type={type(err)}")
+            messagebox.showerror("Error", f"Failed to update booking:\n{err}")
+            if conn:
+                conn.close()
+            else:
+                pass
+            return False, err
+
+    def validate_float_list(self, input_str: str) -> bool:
+        """
+        Check if input_str is a comma-separated list of floats.
+
+        :param input_str: string input like "1,2,3"
+        :return: True if valid, False otherwise
+        """
+        try:
+            # Split by comma
+            parts = input_str.split(",")
+
+            # Check each part is an float
+            for part in parts:
+                float(part)  # raises ValueError if not an float
+
+            return True
+        except ValueError:
+            return False
+
+    def check_user_inputs_edit(self, data_list: str, cancel=False) -> list:
+        """
+        Docstring for check_user_inputs_edit
+        
+        :param self: pull from self params/funcs
+        :param data_list: Input userparam str: date_booking_var
+        :type data_list: str
+        :param cancel: input default = false, True means don't check date past (as cancel requested)
+        :type cancel: bool (default false)
+        :return: List of errors (or empty list). Based on userchecks
+        :rtype: list
+        """
+        output_msg = []
+
+        # check if data input str               
+        if data_list is None or data_list == '':
+            output_msg.append('Missing Date input')
+
+        # validate format dd/MM/yyyy
+        if not self.is_valid_date(data_list):
+            output_msg.append('Date Format should be dd/MM/yyyy')
+        else:
+            input_date = datetime.strptime(data_list, '%d/%m/%Y').date()
+
+            # check only if cancel = True
+            if not cancel and date.today() > input_date:
+                output_msg.append('Date is in the past')
+
+        return output_msg
+
+    def normalise_date(self, date_str) -> str:
+        """
+        Docstring for normalise_date
+        
+        :param self: change '%d/%m/%Y', '%d/%m/%y' > ensure all are dd/MM/yyyy
+        :param date_str: Str of date
+        """
+
+        for fmt in ('%d/%m/%Y', '%d/%m/%y'):
+            try:
+                dt = datetime.strptime(date_str, fmt)
+                return dt.strftime('%d/%m/%Y')
+            
+            except ValueError:
+                pass
+
+        raise ValueError('Invalid date format')
+
+    def is_valid_date(self, date_str):
+        """
+        Check if date_str is in dd/MM/yyyy format.
+        Returns True if valid, False otherwise.
+        """
+        try:
+            datetime.strptime(date_str, "%d/%m/%Y")
+            return True
+        except ValueError:
+            return False

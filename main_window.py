@@ -11,6 +11,8 @@ from tab_packages import Tab4
 from tab_account import Tab5
 from tab_garage import Tab6
 from tab_admin import Tab7
+from tab_book_staff import Tab8
+
 
 class Main(tk.Tk):
     def __init__(self, curr_user, access_code):
@@ -56,6 +58,7 @@ class Main(tk.Tk):
         # Tabs
         self.tab1 = Tab1(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_homepage = Tab1
         self.tab2 = Tab2(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_book_appointments = Tab2
+        self.tab8 = Tab8(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_staff_book_appointments = Tab8
         self.tab3 = Tab3(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_stock = Tab3
         self.tab4 = Tab4(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_packages = Tab4
         self.tab6 = Tab6(self.notebook, self, self.curr_user, "TabFrame.TFrame") # tab_garage = Tab6
@@ -65,6 +68,7 @@ class Main(tk.Tk):
         # Add to Notebook
         self.notebook.add(self.tab1, text=self.tab1.tab_name) # tab_homepage = Tab1
         self.notebook.add(self.tab2, text=self.tab2.tab_name) # tab_book_appointments = Tab2
+        self.notebook.add(self.tab8, text=self.tab8.tab_name) # tab_staff_book_appointments = Tab8
         self.notebook.add(self.tab3, text=self.tab3.tab_name) # tab_stock = Tab3
         self.notebook.add(self.tab4, text=self.tab4.tab_name) # tab_packages = Tab4
         self.notebook.add(self.tab6, text=self.tab6.tab_name) # tab_garage = Tab6

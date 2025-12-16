@@ -303,7 +303,7 @@ class Tab4(ttk.Frame):
 
                     # cleanup returned data list > str of itm refs
                     cleaned_data = items_consumed.replace("[","").replace("]","").split(",")
-                    final_data = ",".join(f"'{item}'" for item in cleaned_data)                    
+                    final_data = ",".join(f"'{item}'" for item in cleaned_data)
                     
                     # get list of item names
                     data = conn.query(sql.replace("replace1",final_data), ())
@@ -376,8 +376,9 @@ class Tab4(ttk.Frame):
 
                 # get next package_id
                 if i == 0:
-                    self.next_package_id = conn.query(sql, ())
-                
+                    next_package_id = conn.query(sql, ())
+                    self.next_package_id = next_package_id[1][0][0]
+
                 # get package info from searcher dropdown                
                 if i == 2 and dropdown_checker != '':
 

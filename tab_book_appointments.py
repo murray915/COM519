@@ -14,8 +14,8 @@ class Tab2(ttk.Frame):
         self.controller = controller
         
         ttk.Label(self, text="This is the Book Appointment Tab" \
-        "\n> The main display is all current (future) bookings, by Booking date. To edit any booking please select the respective row, and change the required details in the bottom selection." \
-        "\n> To cancel a booking, please press the 'request booking' option, and this will alert the garage to the request, and acceptance and full cancelation should follow."\
+        "\n> The main display is all current (future) bookings, by Booking date. To edit any booking please select the respective row, and change the required details in the bottom selection, then press 'Save Changes'." \
+        "\n> To cancel a booking, please press the 'request cancellation' option, and this will alert the garage to the request, and acceptance and full cancelation should follow."\
         "\n\n> To create new bookings, please input the required date (from Today into the future), and select using the dropdown boxes the package/garage and Vehicle registered with the account"
         ).pack(pady=20)
 
