@@ -22,16 +22,18 @@ def tab7(root, mock_controller):
 
 
 def test_check_user_inputs_password_valid(tab7):
-    """Password + accesscode + activeflag are valid"""
+    """
+    Password + accesscode + activeflag are valid
+    """
     data = [
         "ValidPassword123!",    # meets all rules
         "CUS_USR",              # in access list
         "Active"                # valid
     ]
 
+    # fixture for window
     result = tab7.check_user_inputs_password(data)
     assert result == []
-
 
 def test_check_user_inputs_password_invalid(tab7):
     """Test missing capitals, numbers, invalid access code, etc."""
@@ -41,6 +43,7 @@ def test_check_user_inputs_password_invalid(tab7):
         "maybe"        # invalid activeflag
     ]
 
+    # fixture for window
     result = tab7.check_user_inputs_password(data)
 
     assert "Password must be at least 12 characters" in result
@@ -48,4 +51,18 @@ def test_check_user_inputs_password_invalid(tab7):
     assert "Password must contain a number" in result
     assert "Password must contain a special character" in result
     assert "Access code input is not supported." in result
+    assert "Activeflag needs to be Active or Inactive" in result
+
+
+def test_check_user_inputs_allmissing_invalid(tab7):
+    """Test missing values passed, numbers, invalid access code, etc."""
+    data = [
+        "",
+        "",
+        ""
+    ]
+
+    # fixture for window
+    result = tab7.check_user_inputs_password(data)
+
     assert "Activeflag needs to be Active or Inactive" in result

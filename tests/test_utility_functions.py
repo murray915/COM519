@@ -16,7 +16,7 @@ def test_database_connection_pass():
             settings["database_settings"]["database"]
         )
 
-        # Create a connection (DO NOT use "with" here)
+        # Create a connection
         conn = db.Database(db_path)
 
         # Test connection
@@ -45,7 +45,7 @@ def test_get_sql_scripts():
 
 def test_generate_key():
     """
-    generate encyption key
+    generate encyption new key from function
     return key
     """
     from cryptography.fernet import Fernet
@@ -56,7 +56,7 @@ def test_generate_key():
 
 def test_get_settings_key():
     """
-    generate encyption key
+    retrieve encyption key from settings.json
     return key
     """
     import json

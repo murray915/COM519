@@ -24,6 +24,7 @@ def upload_image_to_db(part_id: str, filepath: str) -> tuple[bool, str | None]:
         # Convert JPG → PNG if needed
         if ext in (".jpg", ".jpeg"):
             img = Image.open(filepath).convert("RGBA")
+
             # Make white (or near white) transparent
             new_data = [
                 (255, 255, 255, 0) if r > 240 and g > 240 and b > 240 else (r, g, b, a)
@@ -61,7 +62,7 @@ def upload_image_to_db(part_id: str, filepath: str) -> tuple[bool, str | None]:
 def get_tk_image_from_db(img_id) -> object | None:
     """
     get image from database returned as TK object ready for app display    
-    img_id input is the pack_id from database 
+    img_id input is the part_id from database 
 
     return object|None, false/true and errorstring if false(err occured)
     """   
@@ -76,7 +77,6 @@ def get_tk_image_from_db(img_id) -> object | None:
 
         # enact sql scripts
         for i, sql in enumerate(sql_statements):
-
             # get blob data from id
             if i == 0:
                 blob = conn.query(sql, (img_id,))
@@ -84,6 +84,7 @@ def get_tk_image_from_db(img_id) -> object | None:
         # commit & close connections
         conn.close(True)
 
+        # check if no data is found. If not return None
         if blob[1][0][0] is None:
             return None
 
@@ -91,7 +92,7 @@ def get_tk_image_from_db(img_id) -> object | None:
         # return Tk-compatible image
         pil_img = Image.open(io.BytesIO(blob[1][0][0]))
 
-        # Resize to fixed size
+        # Resize to fixed possible over-sized images uploaded
         pil_resized = pil_img.resize((150,150), Image.LANCZOS)
 
         # Convert PIL to Tk image

@@ -330,10 +330,11 @@ class Tab3(ttk.Frame):
                 if i == 0 and self.part_id != '':
                     part_info = conn.query(sql, (self.part_id,))
                 
-                    # if data found for search/item selector, update self data
+                    # if data found for search/item selector, update self data refs
                     if part_info[1]:
                         rows = part_info[1]
 
+                        # confirm data found & update
                         if rows:
                             (
                                 partid,
@@ -344,22 +345,27 @@ class Tab3(ttk.Frame):
                                 activeflag
                             ) = rows[0]
 
+                        # set self vars to display in application
                         self.partid_var.set(partid)
                         self.name_var.set(name)
                         self.description_var.set(description)
                         self.commongroup_var.set(commongroup)
                         self.image = image
 
+                        # convert bool > display text
                         if activeflag == 1:
                             self.activeflag_var.set("Active")
                         else:
                             self.activeflag_var.set("Inactive")
 
+                        # check if image returned data is emtpy
+                        # if value found, pull blob data & update self.image with tk_image obj
                         if self.image is not None:
-                            self.image = ifc.get_tk_image_from_db(self.part_id)
-                            self.image_label.config(image=self.image)
-                            self.image_label.image = self.image
+                            self.image = ifc.get_tk_image_from_db(self.part_id) # get obj
+                            self.image_label.config(image=self.image) #configure variable & image
+                            self.image_label.image = self.image # assign to image to label
 
+                        # no image for item, unassign vars & config blank
                         else:
                             self.image = None
                             self.image_label.config(image="")
@@ -609,7 +615,7 @@ class Tab3(ttk.Frame):
                 self.new_item_name.get().strip(),
                 self.new_item_des.get().strip(),
                 self.new_item_comm_group.get().strip(),
-                None, 
+                None,
                 1
                 ]
 

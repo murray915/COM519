@@ -5,31 +5,31 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pandas as pd
 import csv
 import os
+import database as db
 
 def get_database_connection() -> object | bool:
     """
-    Return live database connection from settings data.
-    If invalid, return False.
+    Docstring for get_database_connection
+                Return live database connection from settings data.
+    :return: Return False if connection failure, or database connection
+    :rtype: object | bool
     """
-    import os
-    import database as db
-
     try:
+        conn = None
+
+        # get database path/name from settings.json
         settings = get_settings_data()
+        db_path = os.path.join(settings["database_settings"]["database_path"],
+            settings["database_settings"]["database"])
 
-        db_path = os.path.join(
-            settings["database_settings"]["database_path"],
-            settings["database_settings"]["database"]
-        )
-
-        # Create a connection (DO NOT use "with" here)
+        # Create a connection
         conn = db.Database(db_path)
 
-        # Test connection
+        # Test created connection
         test_sql = load_sql_file("database_connection_check.sql")
         result = conn.query(test_sql, ())
 
-        if result[1]:
+        if result[1]: # sucess, return connection
             ic("Database connection successful")
             return conn   # return open connection
         
@@ -42,23 +42,25 @@ def get_database_connection() -> object | bool:
         return False
     
 
-def load_sql_file(filename) -> str | False: 
+def load_sql_file(filename) -> str | False:
     """
-    Read SQL file from repsository and return as string
-    If file not found, return False
+    Docstring for load_sql_file
+                Read SQL file from repsository and return as string.
+    :return: If file not found, return False, else return file as full string
+    :rtype: str | bool
     """
-
     try:
+        # get path for sql file
         sql_path = os.path.join(os.path.dirname(__file__), "SQL", filename)
         
-        with open(sql_path, 'r') as f:
+        with open(sql_path, 'r') as f: # open file * read
             sql_script = f.read()
 
-        if sql_script:
+        if sql_script: # check if file has contents
             ic(f"SQL file read successfully: {filename}")
-            return sql_script
+            return sql_script # success, return str
         else:
-            ic("SQL file read error")
+            ic("SQL file read error") # failure return false
         
         return False  
     
@@ -112,12 +114,16 @@ def get_encrypt_key() -> str:
     :rtype: str
     """
 
+    # for key within json settings, return stored data
     key_str = get_settings_data()["database_settings"]["key"]
-        
+    
+    # validate key & strip leading value for Fernet funciton
     if key_str.startswith("b'") or key_str.startswith('b"'):
+        
         # Strip accidental b'...' wrapper
         key_str = key_str[2:-1]
 
+    # key has been corrupted/broken
     if len(key_str) != 44:
         raise ValueError("Invalid Fernet key length")
     
@@ -257,7 +263,7 @@ def validate_postcode(input_postcode: str, create:bool) -> str:
                 postcode_id = conn.query(sql, ())
                 postcode_id = postcode_id[1][0][0]
 
-            # check if user input postcode exist
+            # check if user input postcode exists
             if i == 1:
                 result = conn.query(sql, (postcode,))
 

@@ -43,6 +43,7 @@ class Tab2(ttk.Frame):
         constructor for frame 1 : booking_data_user_form
         """
 
+        # create main frame label
         booking_data_user_form = tk.LabelFrame(self.frame, text="Booking Information")
         booking_data_user_form.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
 
@@ -113,12 +114,12 @@ class Tab2(ttk.Frame):
             "Garage Contact Member of Staff : "
         ]
 
-        # set fields to be edit/non-edit
-        # for edit/cancel
+        # set fields to be edit/non-edit i.e. user input
+        # for edit/cancel frame
         NO_ENTRY_FIELDS = {0, 1, 3, 5, 6, 7, 8, 9}
 
         # vars
-        # for edit/cancel
+        # for edit/cancel frame
         vars = [
             self.login_name_var, self.booking_ref_var, self.date_booking_var,
             self.garage_name_var, self.car_reg_var, self.package_var, self.paymethod_Status,

@@ -82,12 +82,13 @@ class Main(tk.Tk):
         # Bind event
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
 
-        # access logic
+        # access logic - Admin sees all. Reduce from all on access_code
         if self.access_code == 'CUS_USR':
             self.notebook.forget(self.tab3)
             self.notebook.forget(self.tab4)
             self.notebook.forget(self.tab6)
             self.notebook.forget(self.tab7)
+            self.notebook.forget(self.tab8)
 
         if self.access_code == 'STF_USR':
             self.notebook.forget(self.tab7)

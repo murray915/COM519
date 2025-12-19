@@ -163,20 +163,7 @@ VALUES
 ;
 
 INSERT INTO users(
-	user_id,
-	customer_id,
-	staff_id,	
-	name,
-	address,
-	postcode_id,
-	email,
-	phone_no,
-	membership_id,
-	staff_type,
-	mechanic_id,
-	primary_garage,	
-	access_code,
-	account_creation_date)
+	user_id,customer_id,staff_id,name,address,postcode_id,email,phone_no,membership_id,staff_type,mechanic_id,primary_garage,access_code,account_creation_date)
 VALUES
     ('USR-001','CUS-001','N/A','Oliver Smith','12 High Street, Cambridge','PST-001','oliver.smith@email.com','07123 456789','N/A','N/A','N/A','N/A','CUS_USR','2025-09-12',1),
     ('USR-002','CUS-002','N/A','Amelia Jones','Flat 4, 22 King’s Road, London','PST-002','amelia.jones@email.com','07234 567890','1','N/A','N/A','N/A','CUS_USR_MEM','2025-10-25'),

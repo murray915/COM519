@@ -125,14 +125,13 @@ CREATE TABLE login_details(
 );
 
 CREATE TABLE transactions (
-    transaction_id string NOT NULL,
+    transaction_id string NOT NULL UNIQUE,
     booking_id string NOT NULL,
     customer_vehicle_id string NOT NULL,
     part_consumed string,
     qty_consumed int,
     PRIMARY KEY (transaction_id),
     FOREIGN KEY (part_consumed) REFERENCES stock(part_id),
-	FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
     FOREIGN KEY (customer_vehicle_id) REFERENCES customer_vehicles(customer_vehicle_id)
 );
 

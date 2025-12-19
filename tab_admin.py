@@ -354,7 +354,7 @@ class Tab7(ttk.Frame):
                     # check if inputs are ok
                     result = self.check_user_inputs_password(var_list)
 
-                    # if no error found, pass
+                    # if no error found, continue else, print errors to user & stop updates
                     if result:
                         messagebox.showerror("Validation Error", "\n".join(result))
                         raise ValueError("Incorrect data inputs")

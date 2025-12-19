@@ -208,7 +208,8 @@ class Tab4(ttk.Frame):
         get_package_data = tk.Button(package_edit_create_frame, text="Get Package Data", command=self.get_package_edit_create)
         get_package_data.grid(row=0, column=4)
 
-        update_package_data = tk.Button(package_edit_create_frame, text="Update/Create Package Data", command=lambda: self.get_package_edit_create(True))
+        update_package_data = tk.Button(package_edit_create_frame, text="Update/Create Package Data", 
+                                        command=lambda: self.get_package_edit_create(True))
         update_package_data.grid(row=7, column=4)
 
         # format frame widgets
@@ -426,7 +427,6 @@ class Tab4(ttk.Frame):
                 # update existing record
                 # action = True button pressed by user
                 if i == 4 and action:
-
                     # get user input params
                     package_id = self.package_id_var_f3.get()
                     package_name = self.package_name_entry.get()

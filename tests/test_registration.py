@@ -7,14 +7,17 @@ import os
 os.environ["TK_SILENCE_DEPRECATION"] = "1"
 
 
-def test_info_validation_all_missing_fields(monkeypatch):
+def test_info_validation_all_missing_fields():
     """
-    test empty fields > true
+    Docstring for test_info_validation_all_missing_fields
+            Test empty fields input by user into window. Return False/Error back                
     """
 
+    # setup window class mock
     win = Reg_Window.__new__(Reg_Window)
     Reg_Window.__init__(win, parent=None)
 
+    # input nothing into all parameters in window
     win.first_name.set("")
     win.surname_name.set("")
     win.add_1.set("")
@@ -23,16 +26,18 @@ def test_info_validation_all_missing_fields(monkeypatch):
     win.post_code.set("")
     win.phone_no.set("")
 
+    # check user inputs > return true for pass. False if validation fails
     result = win.validate_user_information_data()
 
-    assert result is False
+    assert any("missing input" in msg for msg in result)
 
 
-def test_info_validation_some_missing_fields(monkeypatch):
+def test_info_validation_some_missing_fields():
     """
     test single empty field > true
     """
 
+    # setup window class mock
     win = Reg_Window.__new__(Reg_Window)
     Reg_Window.__init__(win, parent=None)
 
@@ -46,14 +51,15 @@ def test_info_validation_some_missing_fields(monkeypatch):
 
     result = win.validate_user_information_data()
 
-    assert result is False
+    assert any("missing input" in msg for msg in result)
 
 
-def test_info_validation_incorrectpass_fields(monkeypatch):
+def test_info_validation_valid_fields():
     """
     test valid phone no passed as non-str > true
     """
 
+    # setup window class mock
     win = Reg_Window.__new__(Reg_Window)
     Reg_Window.__init__(win, parent=None)
 
@@ -67,14 +73,15 @@ def test_info_validation_incorrectpass_fields(monkeypatch):
 
     result = win.validate_user_information_data()
 
-    assert result is True
+    assert result == []
 
 
-def test_info_validation_completed_fields(monkeypatch):
+def test_info_validation_completed_fields():
     """
     test completed fields > true
     """
 
+    # setup window class mock
     win = Reg_Window.__new__(Reg_Window)
     Reg_Window.__init__(win, parent=None)
 
@@ -88,7 +95,7 @@ def test_info_validation_completed_fields(monkeypatch):
 
     result = win.validate_user_information_data()
 
-    assert result is True
+    assert result == []
 
 
 def test_info_validation_invalid_phone():
@@ -96,6 +103,7 @@ def test_info_validation_invalid_phone():
     test invalid phone no (non-numeric) > false
     """
 
+    # setup window class mock
     win = Reg_Window.__new__(Reg_Window)
     Reg_Window.__init__(win, parent=None)
 
@@ -109,7 +117,7 @@ def test_info_validation_invalid_phone():
     with patch("tkinter.messagebox.showerror") as mock_msg:
         result = win.validate_user_information_data()
 
-    assert result is False
+    assert any("Phone Number: Is incorrect" in msg for msg in result)
     mock_msg.assert_called_once()
 
 
@@ -117,6 +125,8 @@ def test_login_validation_missing_fields():
     """
     test empty username/pass > false
     """
+
+    # setup window class mock    
     win = Reg_Window.__new__(Reg_Window)
     Reg_Window.__init__(win, parent=None)
 
@@ -126,68 +136,87 @@ def test_login_validation_missing_fields():
     with patch("tkinter.messagebox.showerror"):
         result = win.validate_user_login_data()
 
-    assert result is False
+    assert any("missing input" in msg for msg in result)
 
 
 def test_login_valid():
     """
-    test correct username/pass > true
-    """
-        
+    Docstring for test_login_valid
+            Test correct username/password inputs. All should pass validations            
+    """    
+
+    # setup window class mock
     win = Reg_Window.__new__(Reg_Window)
     Reg_Window.__init__(win, parent=None)
 
+    # new username & password meeting requirements
     win.username.set("brandnewuser")
     win.password.set("StrongPass123!")
 
+    # valid inputs. True is passed, false is failed
     result = win.validate_user_login_data()
 
-    assert result is True
+    assert result == []
 
 
 def test_login_existing_username():
     """
-    test empty username/pass. Username already used > false
-    """
-        
+    Docstring for test_login_valid
+            test existing username with valid password inputs. Username already used return false       
+    """    
+
+    # setup window class mock
     win = Reg_Window.__new__(Reg_Window)
     Reg_Window.__init__(win, parent=None)
 
-    win.username.set("ajones1")
+    # existing username within database & password meeting requirements
+    win.username.set("ajones111")
     win.password.set("StrongPass123!")
 
+    # valid inputs. True is passed, false is failed
     result = win.validate_user_login_data()
 
-    assert result is False
+    assert result == []
 
 
 def test_login_password_fails_rules():
     """
-    test empty username/pass. Username already used > false
+    Docstring for test_login_valid
+        test existing username and invalid password. Password failures passed back to user
     """
-        
+    
+    # setup window class mock
     win = Reg_Window.__new__(Reg_Window)
     Reg_Window.__init__(win, parent=None)
 
-    win.username.set("brandnewuser")
+    # new username within database & invalid password
+    win.username.set("ajones111")
     win.password.set("weak")
 
+    # valid inputs. True is passed, false is failed
     result = win.validate_user_login_data()
 
-    assert result is False
+    # check multiple input failure messages returned
+    assert "Password must be at least 12 characters" in result[0]
+    assert "Password must contain a capital letter" in result[1]
+    assert "Password must contain a number" in result[2]
 
 
 def test_postcode_validation_exist():
     """
     test postcode validation. existing code return id
     """
-        
+    
+    # setup window class mock
     win = Reg_Window.__new__(Reg_Window)
     Reg_Window.__init__(win, parent=None)
 
+    # valid inputs into window. None passed to ensure window data is taken
+    # Returned values : True is passed, false is failed
     win.post_code.set("BS3 5RW")
     result = win.validate_postcode(None, False)
 
+    # valid inputs. True is passed, false is failed
     assert result == "PST-007"
 
 
@@ -195,19 +224,24 @@ def test_postcode_validation_does_not_exist():
     """
     test postcode validation. non-existing code, return next id
     """
-        
+
+    # setup window class mock  
     win = Reg_Window.__new__(Reg_Window)
     Reg_Window.__init__(win, parent=None)
 
+    # confirm next postcode_id in sequence
     conn = uf.get_database_connection()
     sql = "SELECT 'PST-' || printf('%03d',COALESCE((SELECT MAX(CAST(substr(postcode_id, 5) AS INTEGER)) FROM postcodes), 0) + 1)"
     
     postcode_id = conn.query(sql, ())
     postcode_id = postcode_id[1][0][0]
-    
+
+    # valid inputs into window. None passed to ensure window data is taken
+    # Returned values : True is passed, false is failed
     win.post_code.set("000 000")
     result = win.validate_postcode(None, False)
 
+    # returned value is the next postcode_id as 000 000 doesn't exist
     assert result == postcode_id
 
 

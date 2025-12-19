@@ -149,22 +149,24 @@ class Reg_Window(tk.Toplevel):
         # Step 1: User info
         reg_ok = self.validate_user_information_data()
 
-        if not reg_ok:
-            return False
+        # if no error found, continue else, print errors to user & stop updates
+        if reg_ok:
+            messagebox.showerror("Validation Error", "\n".join(reg_ok))
+            raise ValueError("Incorrect data inputs")
 
         # Step 2: Login data
         reg_ok = self.validate_user_login_data()
 
-        if not reg_ok:
-            return False
+        # if no error found, continue else, print errors to user & stop updates
+        if reg_ok:
+            messagebox.showerror("Validation Error", "\n".join(reg_ok))
+            raise ValueError("Incorrect data inputs")
 
         # Step 2: Login data
         postcode_id = self.validate_postcode(None,create)
         
         # final step: create user/login_details
         result = self.register_customer(postcode_id, create)
-
-        ic(result)
 
         if result == False:
             return False      
@@ -173,7 +175,7 @@ class Reg_Window(tk.Toplevel):
         return True
 
 
-    def validate_user_information_data(self) -> bool | str:
+    def validate_user_information_data(self) -> list:
         """
         check user input data, create message box with all required actions
         """
@@ -212,21 +214,20 @@ class Reg_Window(tk.Toplevel):
 
             if output_msg:
                 messagebox.showerror("Validation Error", "\n".join(output_msg))
-                return False
+                return output_msg
 
             # if nothing added to output_msg all validated
             if len(output_msg) == 0:
                 ic('successful validation step 1')
-                return True                
+                return output_msg                
 
-            return False
+            return output_msg
         
         except Exception as err:
             print(f"Unexpected error: {err}, type={type(err)}")
             return err
 
-
-    def validate_user_login_data(self) -> bool:
+    def validate_user_login_data(self) -> list:
         """
         check user login data, create message box with all required actions
         -Username has to be unique
@@ -290,13 +291,13 @@ class Reg_Window(tk.Toplevel):
 
                 if output_msg:
                     messagebox.showerror("Validation Error", "\n".join(output_msg))
-                    return False
+                    return output_msg
 
             if len(output_msg) == 0:
                 ic('successful validation step 2')                
-                return True
+                return output_msg
             
-            return False
+            return output_msg
     
         except Exception as err:
             print(f"Unexpected error: {err}, type={type(err)}")
@@ -310,13 +311,15 @@ class Reg_Window(tk.Toplevel):
         create default True, if testing, pass False        
         """
 
-        # get postcode data
-        if input_postcode is None:
+        # get postcode user inputs if function not called directly
+        if input_postcode is None: # grab window data
             postcode = self.post_code.get().strip().strip(" ")
         else:
-            postcode = input_postcode
+            postcode = input_postcode # pass function call variabel
 
-        # get result if exist or not
+        # check if postcode input exists, if not create
+        # validate_postcode inputs, postcode & bool 
+        #    (True = Commit INSERT to databse, False = Rollback, used for testing)
         result = uf.validate_postcode(postcode, create)
 
         return result
@@ -332,6 +335,7 @@ class Reg_Window(tk.Toplevel):
         try:
                 conn = None
                 
+                # gather user inputs for sql, for user account creation
                 user_params = [
                     (self.first_name.get() + " " + self.surname_name.get()),
                     (self.add_1.get()+" "+self.add_2.get()+" "+self.add_3.get()),
@@ -340,12 +344,11 @@ class Reg_Window(tk.Toplevel):
                     self.phone_no.get()
                 ]
 
+                # gather pw & username for sql, for login_details account creation
                 login_params = [
                     str(self.username.get().strip()),
                     self.encryption(str(self.password.get()),True)               
                 ]
-
-                ic(user_params, login_params)
 
                 # db connection & sql script get
                 conn = uf.get_database_connection()

@@ -96,13 +96,14 @@ class Login_Window(tk.Tk):
 
                 # if username found check pass
                 if result[1]:
-                    # if pass matches
+
+                    # check if password input  matches
                     if self.encryption(result[1][0][-1],False) == str(self.password.get()):
                         self.result = True
                         messagebox.showinfo("showinfo", "correct login and password")
                         self.result = [result[1][0][0],result[1][0][6]]
                         self.destroy()
-                    else:
+                    else: # failed, return error to user
                         self.result = False
                         messagebox.showwarning("Warning", "Incorrect password")      
                                 
