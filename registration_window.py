@@ -213,7 +213,7 @@ class Reg_Window(tk.Toplevel):
                 ic(i)
 
             if output_msg:
-                messagebox.showerror("Validation Error", "\n".join(output_msg))
+                #messagebox.showerror("Validation Error", "\n".join(output_msg))
                 return output_msg
 
             # if nothing added to output_msg all validated
@@ -226,6 +226,7 @@ class Reg_Window(tk.Toplevel):
         except Exception as err:
             print(f"Unexpected error: {err}, type={type(err)}")
             return err
+
 
     def validate_user_login_data(self) -> list:
         """
@@ -290,7 +291,7 @@ class Reg_Window(tk.Toplevel):
                     output_msg.append("Password must contain a special character")
 
                 if output_msg:
-                    messagebox.showerror("Validation Error", "\n".join(output_msg))
+                    #messagebox.showerror("Validation Error", "\n".join(output_msg))
                     return output_msg
 
             if len(output_msg) == 0:

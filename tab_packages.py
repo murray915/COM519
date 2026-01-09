@@ -455,9 +455,8 @@ class Tab4(ttk.Frame):
                     if results[0]: 
 
                         # check the edit box
-                        state = self.check_var.get()
+                        if self.check_var.get() == 1:
 
-                        if state:
                             # edit enabled
                             items_consumed = str("[" + items_consumed + "]")
                             conn.update(sql, (package_name, description, items_consumed, active_flag, item_qty_consumed, package_id))
@@ -474,16 +473,15 @@ class Tab4(ttk.Frame):
 
                 # create new existing record
                 # action = True button pressed by user
-                if i == 5 and action and checkbox_status == 1:
+                if i == 5 and action and checkbox_status == 0:
 
                     # check the edit box is unticket (thus create new record)
-                    state = self.check_var.get()
-                    if not state:
+                    if self.check_var.get() == 0:
 
                         items_consumed = str("[" + items_consumed + "]")
-                        conn.insert(sql, (self.next_package_id[1][0][0], package_name, description, items_consumed, active_flag, item_qty_consumed))
+                        conn.insert(sql, (self.next_package_id, package_name, description, items_consumed, active_flag, item_qty_consumed))
 
-                        messagebox.showinfo("Show Info",f"New item {self.next_package_id[1][0][0]} , {package_name} has been created")
+                        messagebox.showinfo("Show Info",f"New item {self.next_package_id} , {package_name} has been created")
 
                         # cleanup previous inputs
                         self.package_id_var_f3.set("-")

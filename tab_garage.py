@@ -395,7 +395,8 @@ class Tab6(ttk.Frame):
                     # check the edit box
                     state = self.check_var.get()
 
-                    if state:                        
+                    if state: 
+
                         # edit enabled
                         conn.update(sql, (variable_list))
                         messagebox.showinfo("Show Info",f"Garage {name} has been updated")
@@ -413,9 +414,6 @@ class Tab6(ttk.Frame):
                 # action = True button pressed by user
                 if i == 6 and action:
                     
-                    # change update status; stock table update
-                    stock_table_update = True
-
                     # check the edit box is unticket (thus create new record)
                     state = self.check_var.get()
                     if not state:
@@ -426,7 +424,10 @@ class Tab6(ttk.Frame):
                         # create new record 
                         conn.insert(sql, (variable_list))
 
-                    messagebox.showinfo("Show Info",f"New item {self.next_garage_id} , {name} has been created")
+                        # change update status; stock table update
+                        stock_table_update = True
+
+                        messagebox.showinfo("Show Info",f"New item {self.next_garage_id} , {name} has been created")
 
                     # cleanup previous inputs
                     self.garage_id_edit_var.set("-")

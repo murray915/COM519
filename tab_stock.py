@@ -293,6 +293,7 @@ class Tab3(ttk.Frame):
     def on_show(self):
         """Called whenever this tab becomes active"""
         print("Refreshing Tab data")
+        self.prime_garage = uf.validate_primary_garage_id(self.curr_user, True)
         self.get_stock_item_info()
         self.get_stock_garage_info()
 
@@ -646,6 +647,8 @@ class Tab3(ttk.Frame):
             self.new_item_des.set('') 
             self.new_item_comm_group.set('')
 
+            self.get_stock_item_info()
+
             return True
 
         except Exception as err: # Exception Block. Return data to user & False
@@ -689,6 +692,8 @@ class Tab3(ttk.Frame):
                 raise ValueError(output[1])
 
             messagebox.showinfo("show info",f"Item image uploaded successfully to {self.image_item_id.get()}")
+
+            self.get_stock_item_info()
 
             return True
 

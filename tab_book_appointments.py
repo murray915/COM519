@@ -185,7 +185,7 @@ class Tab2(ttk.Frame):
 
     def on_show(self):
         """Called whenever this tab becomes active"""
-        print("Refreshing Tab data")
+        print("Refreshing Tab data")  
         self.load_table_data()
 
     def load_table_data(self) -> tuple[bool, str | None]:

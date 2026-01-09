@@ -1,7 +1,7 @@
 SELECT user_name FROM login_details WHERE user_id = ?;
-SELECT * FROM customer_booking_data WHERE "Login Name" = ? AND date(substr("Date of Booking", 7, 4) || '-' || substr("Date of Booking", 4, 2) || '-' || substr("Date of Booking", 1, 2)) >= date('now');
-SELECT * FROM customer_booking_data WHERE "Login Name" = ? AND date(substr("Date of Booking", 7, 4) || '-' || substr("Date of Booking", 4, 2) || '-' || substr("Date of Booking", 1, 2)) < date('now');
-SELECT * FROM customer_booking_display WHERE "Login Name" = ? AND date(substr("Date of Booking", 7, 4) || '-' || substr("Date of Booking", 4, 2) || '-' || substr("Date of Booking", 1, 2)) >= date('now');
+SELECT * FROM customer_booking_data WHERE "Login Name" = ? AND (date(substr("Date of Booking", 7, 4) || '-' || substr("Date of Booking", 4, 2) || '-' || substr("Date of Booking", 1, 2)) >= date('now') AND "Status" <> 'Completed');
+SELECT * FROM customer_booking_data WHERE "Login Name" = ? AND (date(substr("Date of Booking", 7, 4) || '-' || substr("Date of Booking", 4, 2) || '-' || substr("Date of Booking", 1, 2)) < date('now') OR "Status" = 'Completed');
+SELECT * FROM customer_booking_display WHERE "Login Name" = ? AND date(substr("Date of Booking", 7, 4) || '-' || substr("Date of Booking", 4, 2) || '-' || substr("Date of Booking", 1, 2)) >= date('now') AND "Payment Method/Status" <> 'Cancelled';
 UPDATE bookings SET date_of_service = ?, customer_vehicle_id = ? WHERE bookings_id = ?;
 UPDATE bookings SET date_of_service = ?, customer_vehicle_id = ? WHERE bookings_id = ?;
 UPDATE bookings SET payment_method = 'Cancellation Requested' WHERE bookings_id = ?;

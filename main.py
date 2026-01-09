@@ -37,26 +37,6 @@ if __name__ == "__main__":
         main_win = mw.Main(test_login[0],test_login[1])
         result = main_win.run()
 
-    else:
+    # else:
 
-        # db connection & sql script get
-        conn = uf.get_database_connection()
-        sql = uf.load_sql_file("booking_staff_scripts.sql")
-        sql_statements = sql.replace("\n", "").split(";")
-
-        # enact sql scripts
-        for i, sql in enumerate(sql_statements):
-
-            # get next transaction id
-            if i == 1:
-                next_transaction_id = conn.query(sql, ())
-                next_transaction_id = next_transaction_id[1][0][0]
-
-            # get table data
-            # current open bookings
-            if i == 0:
-                rows = conn.query(sql, ('GRDG-002',))
-
-        print(rows)
-
-    #     #'Mechanic'
+        pass

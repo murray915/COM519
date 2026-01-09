@@ -247,6 +247,7 @@ class Tab8(ttk.Frame):
     def on_show(self):
         """Called whenever this tab becomes active"""
         print("Refreshing Tab data")
+        self.prime_garage = uf.validate_primary_garage_id(self.curr_user, True)
         self.load_table_data()
 
     def get_booking_completion_check(self):

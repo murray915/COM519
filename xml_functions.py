@@ -1,6 +1,7 @@
 from xml.sax.saxutils import XMLGenerator
 import xml.etree.ElementTree as ET
-import xml.sax
+import tkinter as tk
+from tkinter import ttk, messagebox
 import utility_functions as uf
 import io
 import os
@@ -121,8 +122,7 @@ class XMLReader:
 
             rows.append(row_dict)
 
-        return rows
-    
+        return rows    
     
     def get_db_table_details(self, table_name: str):
         """
@@ -170,6 +170,165 @@ class XMLReader:
 
             return False, str(err)
 
+class XmlEditor(tk.Toplevel):
+    def __init__(self, root, table_name, rows, on_save=None):
+        super().__init__(root)
+        self.window = root
+        self.table_name = table_name
+        self.rows = rows
+        self.on_save = on_save
+        self.entries = []
+
+        self.geometry(uf.get_settings_data()["ktinker_settings"]["reg_geometry"])
+        self.title(f"XML Editor")
+       
+        self.window_constructor()
+        self.table_constructor()
+
+    def window_constructor(self):
+
+        # allow resizing        
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        self.canvas = tk.Canvas(self)
+        self.canvas.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+
+        scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+
+        self.scrollable_frame = tk.Frame(self.canvas)
+
+        self.canvas_window = self.canvas.create_window(
+            (0, 0), window=self.scrollable_frame, anchor="nw"
+        )
+
+        # update scroll region
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(
+                scrollregion=self.canvas.bbox("all")
+            )
+        )
+
+        # mouse wheel scrolling
+        self.canvas.bind(
+            "<MouseWheel>",
+            lambda e: self.canvas.yview_scroll(
+                int(-1 * (e.delta / 120)), "units"
+            )
+        )
+
+        self.canvas.bind(
+            "<Configure>",
+            lambda e: self.canvas.itemconfig(
+                self.canvas_window, width=e.width
+            )
+        )
+
+        # Add buttons to window within frame
+        frame = ttk.Frame(self)
+        frame.grid(row=1, column=0, columnspan=2, pady=10)
+
+        add_button = ttk.Button(frame, text="Add Data", command=self.add_row)
+        add_button.grid(row=2, column=0, columnspan=2, pady=10)
+
+        save_button = ttk.Button(frame, text="Save File", command=self.save_changes)
+        save_button.grid(row=2, column=4, columnspan=2, pady=10)
+
+    def clear_previous_rows(self):
+        """Clear all previous row widgets and reset entries list."""
+        for widget in self.scrollable_frame.winfo_children():
+            widget.destroy()
+        self.entries.clear()
+
+    def table_constructor(self):
+
+        # reset table
+        self.clear_previous_rows()
+
+        # build new rows
+        for data_index, row_data in enumerate(self.rows):
+            data_frame = ttk.LabelFrame(
+                self.scrollable_frame, text=f"Data Point {data_index + 1}"
+            )
+
+            # create dataframe
+            data_frame.grid(row=data_index, column=0, sticky="ew", padx=10, pady=6)
+
+            # container for data
+            row_entries = {}
+
+            # loop through data & return values
+            for field_index, (field, value) in enumerate(row_data.items()):
+                ttk.Label(data_frame, text=field).grid(
+                    row=field_index, column=0, sticky="w", padx=5, pady=2
+                )
+
+                entry = ttk.Entry(data_frame, width=60)
+                entry.insert(0, "" if value is None else value)
+
+                # read-only fields // don't allow edit
+                if field in ("id", "image_blob"):
+                    entry.config(state="disabled")
+
+                # add to grid created entries
+                entry.grid(row=field_index, column=1, padx=5, pady=2)
+                row_entries[field] = entry
+
+            # add delete to created entree
+            delete_btn = ttk.Button(
+                data_frame,
+                text="Delete Row",
+                command=lambda idx=data_index: self.delete_row(idx)
+            )
+
+            delete_btn.grid(
+                row=field_index + 1, column=0, columnspan=2, pady=6
+            )
+
+            self.entries.append(row_entries)
+
+    def add_row(self):
+
+        new_row = {}
+
+        existing_ids = [int(r["id"]) for r in self.rows if r.get("id")]
+        next_id = str(max(existing_ids) + 1 if existing_ids else 1)
+        new_row["id"] = next_id
+
+        if self.rows:
+            for key in self.rows[0]:
+                if key != "id":
+                    new_row[key] = None
+
+        self.rows.append(new_row)
+        self.table_constructor()
+
+        
+    def delete_row(self, index):
+
+        if messagebox.askyesno("Confirm Delete", "Delete this row?"):
+            del self.rows[index]
+            
+            self.table_constructor()
+
+    def save_changes(self):
+
+        for row_index, row_entries in enumerate(self.entries):
+
+            # update row dict, skipping read-only fields
+            self.rows[row_index].update({
+                field: (entry.get() or None)
+                for field, entry in row_entries.items()
+                if field not in ("image_blob", "id")
+            })
+
+        if self.on_save:
+            self.on_save(self.table_name, self.rows)
+
 def database_backup(db_table_list: list) -> tuple[bool, str | None]:
     """
     Docstring for database_backup. Input db tables to pull data for
@@ -216,7 +375,6 @@ def database_backup(db_table_list: list) -> tuple[bool, str | None]:
             pass
 
         return False, str(err)
-
 
 def database_updater_from_xml(filepath: str) -> tuple[bool, str | None]:
     """
@@ -301,3 +459,27 @@ def database_updater_from_xml(filepath: str) -> tuple[bool, str | None]:
             pass
 
         return False, str(err)
+
+def load_xml_as_rows(xml_path):
+
+    # read input xml path
+    tree = ET.parse(xml_path)
+    root = tree.getroot()
+
+    # empty list
+    rows = []
+    
+    # loop through tree, for data tag
+    for data_elem in root.findall("data"):
+
+        # id denotes entity start
+        row = {"id": data_elem.get("id")}
+
+        # get branch data
+        for child in data_elem:
+            row[child.tag] = child.text
+
+        # append end list    
+        rows.append(row)
+
+    return rows

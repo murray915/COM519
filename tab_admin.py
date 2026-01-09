@@ -23,6 +23,7 @@ class Tab7(ttk.Frame):
         self.var_values = {}        
         self.var_widgets = {}
         self.load_file = '-'
+        self.edit_file = '-'
         
         #encryption
         self.f_key = None
@@ -155,7 +156,7 @@ class Tab7(ttk.Frame):
         checkbox_frame = tk.Frame(canvas)
         canvas.create_window((0, 0), window=checkbox_frame, anchor="nw")
 
-        # Add checkboxes
+        # Add checkboxes mnatching total tables within self.db_table_list (backing data created on app launch)
         for i, value in enumerate(self.db_table_list):
             key = f"checkbox_var_{value}"
             self.var_values[key] = tk.IntVar(value=1)  # checkboxes created checked
@@ -183,7 +184,7 @@ class Tab7(ttk.Frame):
         Constructor for frame 3: xml_importer
         """
         xml_importer = tk.LabelFrame(self.frame, text="Database XML Importer")
-        xml_importer.grid(row=2, column=0, padx=5, pady=5, sticky="nw")
+        xml_importer.grid(row=1, column=1, padx=5, pady=5, sticky="nw")
 
         # Labels
         self.load_file_var = tk.StringVar(value=self.load_file)
@@ -196,6 +197,9 @@ class Tab7(ttk.Frame):
 
         xml_requirements_printout = tk.Button(xml_importer, text="Get XML requirement Details", command=self.xml_requirements_printout)
         xml_requirements_printout.grid(row=7, column=1)
+
+        tk.Button(xml_importer, text="Edit XML", command=self.open_xml_editor).grid(row=8, column=1)
+
 
         # format frame widgets
         for widget in xml_importer.winfo_children():
@@ -424,8 +428,7 @@ class Tab7(ttk.Frame):
         :return: True for success, False & errorstring for failure
         :rtype: tuple[bool, str | None]
         """
-        try:        
-
+        try:
             # env params
             conn = None
             
@@ -437,16 +440,16 @@ class Tab7(ttk.Frame):
             # enact sql scripts
             for i, sql in enumerate(sql_statements):
 
-                # update user password
+                # gather tables from database output as list
                 if i == 0:
                     output_data = []
                     data = conn.query(sql, ())
                     
-                    # clean data into list
+                    # clean data into list for cycle & allocation
                     for i in data[1]:
                         output_data.append(i[0])
                     
-                    # add to self var
+                    # add to self var for recovery later
                     self.db_table_list = output_data
             
             # commit & close
@@ -647,7 +650,7 @@ class Tab7(ttk.Frame):
                 messagebox.showinfo("show info","File loaded successfully")
 
             else:
-                messagebox.showerror("show error",f"Error when loading file please check the filenmae and all requirements")
+                messagebox.showerror("show error",f"Error when loading file please check the filename and all requirements : \ndatabase returned error = \n{result[1]}")
                 raise ValueError("Error on fileload")    
 
             return True
@@ -655,7 +658,57 @@ class Tab7(ttk.Frame):
         except Exception as err: # Exception Block. Return data to user & False
             print(f"\n\n** Unexpected {err=}, {type(err)=} ** \n\n")  
             return False, str(err)
+
+    def open_xml_editor(self):
+
+        # get filepath from user
+        filepath = filedialog.askopenfilename(
+            title="Select a file",
+            filetypes=[("xml files", "*.xml")]
+        )
         
+        # check user filepath values
+        if filepath == '' or filepath is None:
+            messagebox.showerror("show info","File not selected")
+            raise ValueError("No value file selected")                
+
+        self.load_file = filepath
+        self.load_file_var.set(self.load_file)
+        
+        if not self.load_file:
+            messagebox.showwarning("No File", "Please upload an XML file first.")
+            return
+
+        rows = xfc.load_xml_as_rows(self.load_file)
+
+        xfc.XmlEditor(
+            parent=self,
+            table_name="access",
+            rows=rows,
+            on_save=lambda _table, r: self.save_xml_changes(self.load_file, r)
+        )
+
+    def save_xml_changes(self, filepath, rows):
+        import xml.etree.ElementTree as ET
+
+        root = ET.Element("root")
+
+        for row in rows:
+            data_elem = ET.SubElement(root, "data")
+            data_elem.set("id", row["id"])
+
+            for key, value in row.items():
+                if key == "id":
+                    continue
+                child = ET.SubElement(data_elem, key)
+                child.text = value or ""
+
+        ET.ElementTree(root).write(
+            filepath,
+            encoding="utf-8",
+            xml_declaration=True
+        )
+
     def export_audit_table(self):
         """
         Docstring for get_db_data

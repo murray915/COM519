@@ -54,14 +54,19 @@ class Tab5(ttk.Frame):
         self.customer_ref = uf.validate_customer_account(self.curr_user, False)
 
         ttk.Label(self, text="This is the Account Management Tab" \
-        "\n> To change account details, including password. Please update the required fields and press the 'Update my details' button." \
-        "\n> To update password, please input current password and then your new password (in both the first and second box), then 'Update my password', button." \
-        "\n> To deactivate your account completely. Please tick the deactivation box, and input username and password. This will complete the process and close the application & deactivate your account. To reactivate, please untick the box when updating" \
+        "\nAccount information box" \
+        "\n> To change your name, address, contact details or primary garage, please edit the required fields then click the 'Update my details' button." \
+        "\nVehicle information box"
+        "\n> To add a new vehicle to your account, please add the details to the four boxes and press the 'Add vehicle data' button. MOT status = 'pass' or 'fail'" \
+        "\n> To update a vehicle, please select one vehicle from the dropdown menu, update respective fields, and press'Update vehicle data' button. " \
+        "\n> To deactivate a vehicle, select one vehicle from the dropdown menu, check box to deactivate then press 'update vehicle data' To reactivate, when updating untick the box." \
+        "\nMembership information box" \
+        "\n> To create a membership, input Iban and day for payment then press 'Create/Update Details'. " \
+        "\n> To update a membership, edit the data displayed and press the 'Create/Update Details'." \
+        "\n> To deactivate a membership, press the 'Deactivate my membership' button."
+        "\nPassword reset box"
+        "\n> To update password, please input current password in the first box and then your new password in both the second and third boxes, then press 'Update password', button." 
         
-        "\n\n> To add a new vehicle to your account, please within the 'Vehicle Information' window, add the details to the 4 boxes and press the 'Add vehicle' button. MOT status = 'pass' or 'fail'" \
-        "\n> To update a vehicle, please select one vehicle from the dropdown box, update respective fields, and press'Update vehicle' button. To deactivate a vehicle, check box to deactivate and press 'update my vehicle list', to reactivate, when updating untick the box." \
-        "\n\n>To create a membership, input Card/Iban/day for payment then press 'Create/Update Details'. Update data displayed and press the 'Create/Update Details', to deactivate press the 'Deactivate my membership'" \
-        "\n> To edit update data displayed and press the 'Create/Update Details', to deactivate press the 'Deactivate my membership'"
         ).pack(pady=20)
 
         # general params
@@ -489,6 +494,8 @@ class Tab5(ttk.Frame):
                 # update user password
                 if i == 4:
                     conn.update(sql, update_user_params)
+
+                    messagebox.showinfo("Show Info",f"Password Updated")
         
             # commit & close
             conn.close(True)      
@@ -519,8 +526,6 @@ class Tab5(ttk.Frame):
 
         # check if password meets rules
         for i in data_list[2:3]:
-
-            print(i[1])
 
             # char param to cross check
             special_characters = "!@#$%^&*()-+?_=,<>/"
@@ -560,6 +565,9 @@ class Tab5(ttk.Frame):
             conn = None
             params = ()
             sql_params = ()
+
+            # get customer account, if not one. Create and return
+            cus_acc = uf.validate_customer_account(self.curr_user, True)
 
             # get the part_id from search/selector
             dropdown_checker = self.veh_combobox.get()
@@ -925,7 +933,7 @@ class Tab5(ttk.Frame):
 
                         messagebox.showinfo("Show Info","Account Details updated")
 
-                        self.get_user_info()
+                        self.get_user_info(False)
 
             # commit & close
             conn.close(True)
