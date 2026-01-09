@@ -306,7 +306,6 @@ class XmlEditor(tk.Toplevel):
 
         self.rows.append(new_row)
         self.table_constructor()
-
         
     def delete_row(self, index):
 

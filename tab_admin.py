@@ -682,7 +682,7 @@ class Tab7(ttk.Frame):
         rows = xfc.load_xml_as_rows(self.load_file)
 
         xfc.XmlEditor(
-            parent=self,
+            root=self,
             table_name="access",
             rows=rows,
             on_save=lambda _table, r: self.save_xml_changes(self.load_file, r)

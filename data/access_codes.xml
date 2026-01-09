@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root><data id="1"><access_code>ADMIN</access_code><description>Administrator</description></data><data id="2"><access_code>CUS_USR</access_code><description>Customer Login basic</description></data><data id="3"><access_code>STF_USR</access_code><description>Staff Login</description></data><data id="4"><access_code>CUS_STF</access_code><description>Staff Login set with Cus Acc</description></data><data id="5"><access_code>READ_ONLY</access_code><description>Read Only</description></data></root>

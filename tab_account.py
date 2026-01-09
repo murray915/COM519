@@ -932,7 +932,7 @@ class Tab5(ttk.Frame):
                         conn.update(sql, (name, address, postcode_id, email, phoneno, prime_gar, self.curr_user))
 
                         messagebox.showinfo("Show Info","Account Details updated")
-
+                        conn.commit()
                         self.get_user_info(False)
 
             # commit & close
